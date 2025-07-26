@@ -1,0 +1,259 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(USER)
+  avatar    String?
+  bio       String?
+  locale    String   @default("vi")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  posts     Post[]
+  comments  Comment[]
+  chatMessages ChatMessage[]
+  
+  @@map("users")
+}
+
+model Post {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  content     String
+  excerpt     String?
+  featuredImage String?
+  status      PostStatus @default(DRAFT)
+  type        PostType @default(POST)
+  metaTitle   String?
+  metaDescription String?
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  
+  categories  PostCategory[]
+  tags        PostTag[]
+  comments    Comment[]
+  
+  @@map("posts")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  color       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  posts       PostCategory[]
+  
+  @@map("categories")
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  color     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  posts     PostTag[]
+  
+  @@map("tags")
+}
+
+model PostCategory {
+  postId     String
+  categoryId String
+  
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  @@id([postId, categoryId])
+  @@map("post_categories")
+}
+
+model PostTag {
+  postId String
+  tagId  String
+  
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@id([postId, tagId])
+  @@map("post_tags")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  status    CommentStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  authorId  String?
+  author    User?    @relation(fields: [authorId], references: [id])
+  
+  parentId  String?
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id])
+  replies   Comment[] @relation("CommentReplies")
+  
+  @@map("comments")
+}
+
+model Media {
+  id        String   @id @default(cuid())
+  filename  String
+  originalName String
+  mimeType  String
+  size      Int
+  url       String
+  alt       String?
+  caption   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("media")
+}
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+  type  SettingType @default(STRING)
+  
+  @@map("settings")
+}
+
+model ChatSession {
+  id        String   @id @default(cuid())
+  sessionId String   @unique
+  userId    String?
+  status    ChatStatus @default(ACTIVE)
+  isWithAdmin Boolean @default(false)
+  adminId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  messages  ChatMessage[]
+  
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  content   String
+  type      MessageType @default(TEXT)
+  isFromUser Boolean
+  isFromAdmin Boolean @default(false)
+  createdAt DateTime @default(now())
+  
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  
+  @@map("chat_messages")
+}
+
+model Visitor {
+  id        String   @id @default(cuid())
+  ip        String
+  userAgent String?
+  country   String?
+  city      String?
+  page      String
+  referrer  String?
+  createdAt DateTime @default(now())
+  
+  @@map("visitors")
+}
+
+model Theme {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  config    String   // JSON config
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("themes")
+}
+
+model Menu {
+  id        String   @id @default(cuid())
+  name      String
+  location  String
+  items     String   // JSON array of menu items
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("menus")
+}
+
+enum Role {
+  USER
+  EDITOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  PRIVATE
+  TRASH
+}
+
+enum PostType {
+  POST
+  PAGE
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  SPAM
+  TRASH
+}
+
+enum SettingType {
+  STRING
+  NUMBER
+  BOOLEAN
+  JSON
+}
+
+enum ChatStatus {
+  ACTIVE
+  CLOSED
+  WAITING_ADMIN
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  EMOJI
+  SYSTEM
+}

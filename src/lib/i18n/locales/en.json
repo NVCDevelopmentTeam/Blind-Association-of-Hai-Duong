@@ -1,0 +1,35 @@
+{
+  "home": {
+    "title": "Home",
+    "description": "Center for functional rehabilitation, vocational training and job creation for the blind in Hai Duong"
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "training": "Training",
+    "jobs": "Jobs",
+    "activities": "Activities",
+    "news": "News",
+    "contact": "Contact"
+  },
+  "hero": {
+    "title": "Hai Duong Center for Functional Rehabilitation and Vocational Education for the Blind",
+    "mission": "Our mission:",
+    "mission_1": "Comprehensive functional rehabilitation for the visually impaired",
+    "mission_2": "Vocational training and independent living skills",
+    "mission_3": "Creating job opportunities and community integration",
+    "mission_4": "Improving the quality of life for the visually impaired",
+    "learn_more": "Learn more",
+    "contact_now": "Contact now"
+  },
+  "quick_links": {
+    "rehabilitation": "Rehabilitation",
+    "rehabilitation_desc": "Comprehensive rehabilitation program",
+    "training": "Training",
+    "training_desc": "Professional vocational courses",
+    "jobs": "Job Creation",
+    "jobs_desc": "Connect and create job opportunities",
+    "support": "Integration Support",
+    "support_desc": "Accompanying development"
+  }
+}
