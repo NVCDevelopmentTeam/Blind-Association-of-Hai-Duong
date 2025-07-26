@@ -10,19 +10,16 @@ datasource db {
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  password  String
   name      String
-  avatar    String?
-  bio       String?
+  password  String
   role      Role     @default(USER)
+  avatar    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
-  posts        Post[]
-  comments     Comment[]
+  posts     Post[]
+  comments  Comment[]
   chatSessions ChatSession[]
-  chatMessages ChatMessage[]
 
   @@map("users")
 }
@@ -35,75 +32,56 @@ model Post {
   excerpt       String?
   featuredImage String?
   status        PostStatus  @default(DRAFT)
-  type          PostType    @default(POST)
-  metaTitle     String?
-  metaDescription String?
   publishedAt   DateTime?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+  views         Int         @default(0)
 
-  // Relations
-  authorId   String
-  author     User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  categories PostCategory[]
-  tags       PostTag[]
-  comments   Comment[]
+  authorId      String
+  author        User        @relation(fields: [authorId], references: [id])
+  categoryId    String?
+  category      Category?   @relation(fields: [categoryId], references: [id])
+  
+  tags          PostTag[]
+  comments      Comment[]
 
   @@map("posts")
 }
 
 model Category {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
+  id          String @id @default(cuid())
+  name        String @unique
+  slug        String @unique
   description String?
   color       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  // Relations
-  posts PostCategory[]
+  posts       Post[]
 
   @@map("categories")
 }
 
 model Tag {
-  id        String   @id @default(cuid())
-  name      String
-  slug      String   @unique
-  color     String?
+  id        String @id @default(cuid())
+  name      String @unique
+  slug      String @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
-  posts PostTag[]
+  posts     PostTag[]
 
   @@map("tags")
 }
 
-model PostCategory {
-  id         String   @id @default(cuid())
-  postId     String
-  categoryId String
-  createdAt  DateTime @default(now())
-
-  post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-
-  @@unique([postId, categoryId])
-  @@map("post_categories")
-}
-
 model PostTag {
-  id        String   @id @default(cuid())
-  postId    String
-  tagId     String
-  createdAt DateTime @default(now())
+  postId String
+  tagId  String
 
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
-  @@unique([postId, tagId])
+  @@id([postId, tagId])
   @@map("post_tags")
 }
 
@@ -114,43 +92,60 @@ model Comment {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
-  // Relations
-  postId   String
-  authorId String
-  parentId String?
-
-  post     Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
-  author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
-  replies  Comment[] @relation("CommentReplies")
+  postId    String
+  post      Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String?
+  author    User?         @relation(fields: [authorId], references: [id])
+  
+  parentId  String?
+  parent    Comment?      @relation("CommentReplies", fields: [parentId], references: [id])
+  replies   Comment[]     @relation("CommentReplies")
 
   @@map("comments")
 }
 
-model Media {
-  id           String   @id @default(cuid())
-  filename     String
-  originalName String
-  mimeType     String
-  size         Int
-  url          String
-  alt          String?
-  caption      String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+model Page {
+  id          String     @id @default(cuid())
+  title       String
+  slug        String     @unique
+  content     String
+  status      PostStatus @default(DRAFT)
+  template    String?
+  metaTitle   String?
+  metaDesc    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
-  @@map("media")
+  @@map("pages")
 }
 
-model Setting {
-  id        String      @id @default(cuid())
-  key       String      @unique
-  value     String
-  type      SettingType @default(STRING)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+model ChatSession {
+  id          String @id @default(cuid())
+  sessionId   String @unique
+  userId      String?
+  user        User?  @relation(fields: [userId], references: [id])
+  isActive    Boolean @default(true)
+  connectedToAdmin Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  @@map("settings")
+  messages    ChatMessage[]
+
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id          String @id @default(cuid())
+  content     String
+  type        MessageType @default(TEXT)
+  isFromUser  Boolean
+  isFromAdmin Boolean @default(false)
+  createdAt   DateTime @default(now())
+
+  sessionId   String
+  session     ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
 }
 
 model Visitor {
@@ -164,83 +159,36 @@ model Visitor {
   @@map("visitors")
 }
 
-model ChatSession {
-  id          String            @id @default(cuid())
-  sessionId   String            @unique
-  status      ChatSessionStatus @default(ACTIVE)
-  isWithAdmin Boolean           @default(false)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+  type  String @default("string")
 
-  // Relations
-  userId   String?
-  adminId  String?
-  user     User?         @relation(fields: [userId], references: [id])
-  messages ChatMessage[]
-
-  @@map("chat_sessions")
+  @@map("settings")
 }
 
-model ChatMessage {
-  id          String          @id @default(cuid())
-  content     String
-  type        ChatMessageType @default(TEXT)
-  isFromUser  Boolean         @default(true)
-  isFromAdmin Boolean         @default(false)
-  createdAt   DateTime        @default(now())
-
-  // Relations
-  sessionId String
-  userId    String?
-
-  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  user    User?       @relation(fields: [userId], references: [id])
-
-  @@map("chat_messages")
-}
-
-// Enums
 enum Role {
   USER
   ADMIN
-  SUPER_ADMIN
+  MODERATOR
 }
 
 enum PostStatus {
   DRAFT
   PUBLISHED
-  PRIVATE
-  TRASH
-}
-
-enum PostType {
-  POST
-  PAGE
+  ARCHIVED
 }
 
 enum CommentStatus {
   PENDING
   APPROVED
-  SPAM
-  TRASH
+  REJECTED
 }
 
-enum SettingType {
-  STRING
-  NUMBER
-  BOOLEAN
-  JSON
-}
-
-enum ChatSessionStatus {
-  ACTIVE
-  WAITING_ADMIN
-  CLOSED
-}
-
-enum ChatMessageType {
+enum MessageType {
   TEXT
+  IMAGE
   FILE
   EMOJI
-  SYSTEM
 }

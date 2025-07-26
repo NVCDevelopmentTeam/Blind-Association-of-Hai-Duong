@@ -1,44 +1,32 @@
-<script>
-	import AdminSidebar from '$lib/components/admin/AdminSidebar.svelte';
-	import AdminHeader from '$lib/components/admin/AdminHeader.svelte';
+<script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
+	import AdminHeader from '$lib/components/admin/AdminHeader.svelte';
+	import AdminSidebar from '$lib/components/admin/AdminSidebar.svelte';
+	interface Props {
+		children?: import('svelte').Snippet;
+	}
+
+	let { children }: Props = $props();
 	
-	let { children } = $props();
-	let sidebarOpen = $state(true);
-	let currentUser = $state(null);
+	let user = $state(null);
+	let sidebarOpen = $state(false);
 	
-	onMount(async () => {
+	onMount(() => {
 		if (browser) {
 			const token = localStorage.getItem('admin_token');
-			const userStr = localStorage.getItem('admin_user');
+			const userData = localStorage.getItem('admin_user');
 			
-			if (!token || !userStr) {
+			if (!token || !userData) {
 				goto('/admin/login');
 				return;
 			}
 			
 			try {
-				// Verify token with server
-				const response = await fetch('http://localhost:3001/api/auth/verify', {
-					headers: {
-						'Authorization': `Bearer ${token}`
-					}
-				});
-				
-				if (response.ok) {
-					const userData = await response.json();
-					currentUser = userData.user;
-				} else {
-					localStorage.removeItem('admin_token');
-					localStorage.removeItem('admin_user');
-					goto('/admin/login');
-				}
-			} catch (error) {
-				console.error('Auth verification error:', error);
-				localStorage.removeItem('admin_token');
-				localStorage.removeItem('admin_user');
+				user = JSON.parse(userData);
+			} catch (e) {
+				console.error('Error parsing user data:', e);
 				goto('/admin/login');
 			}
 		}
@@ -47,26 +35,32 @@
 	function toggleSidebar() {
 		sidebarOpen = !sidebarOpen;
 	}
-	
-	function handleLogout() {
-		goto('/admin/logout');
-	}
 </script>
 
-{#if currentUser}
-	<div class="min-h-screen bg-gray-100 dark:bg-gray-900">
-		<AdminHeader {currentUser} {toggleSidebar} {handleLogout} />
+<svelte:head>
+	<meta name="robots" content="noindex, nofollow" />
+</svelte:head>
+
+{#if user}
+	<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+		<!-- Admin Header -->
+		<AdminHeader {user} {toggleSidebar} />
 		
 		<div class="flex">
-			<AdminSidebar {sidebarOpen} />
+			<!-- Admin Sidebar -->
+			<AdminSidebar bind:open={sidebarOpen} />
 			
-			<main class="flex-1 {sidebarOpen ? 'ml-64' : 'ml-16'} transition-all duration-300 p-6">
-				{@render children()}
+			<!-- Main Content -->
+			<main class="flex-1 p-6 lg:ml-64 transition-all duration-300">
+				{@render children?.()}
 			</main>
 		</div>
 	</div>
 {:else}
 	<div class="min-h-screen flex items-center justify-center">
-		<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+		<div class="text-center">
+			<div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+			<p class="text-gray-600">Đang tải...</p>
+		</div>
 	</div>
 {/if}

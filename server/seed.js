@@ -4,294 +4,224 @@ import bcrypt from "bcryptjs"
 const prisma = new PrismaClient()
 
 async function main() {
+  console.log("Seeding database...")
+
   // Create admin user
   const hashedPassword = await bcrypt.hash("Admin123!", 10)
+
   const admin = await prisma.user.upsert({
     where: { email: "admin@ttphcn-haiduong.vn" },
     update: {},
     create: {
       email: "admin@ttphcn-haiduong.vn",
+      name: "Administrator",
       password: hashedPassword,
-      name: "Quản trị viên",
       role: "ADMIN",
     },
   })
 
   // Create categories
-  const categories = await Promise.all([
-    prisma.category.upsert({
-      where: { slug: "dao-tao" },
+  const categories = [
+    { name: "Đào tạo", slug: "dao-tao", description: "Các chương trình đào tạo nghề", color: "#3B82F6" },
+    { name: "Việc làm", slug: "viec-lam", description: "Thông tin việc làm và tuyển dụng", color: "#10B981" },
+    { name: "Hoạt động", slug: "hoat-dong", description: "Các hoạt động của trung tâm", color: "#F59E0B" },
+    { name: "Hỗ trợ", slug: "ho-tro", description: "Chương trình hỗ trợ người khiếm thị", color: "#EF4444" },
+    { name: "Tin tức", slug: "tin-tuc", description: "Tin tức và thông báo", color: "#8B5CF6" },
+  ]
+
+  for (const category of categories) {
+    await prisma.category.upsert({
+      where: { slug: category.slug },
       update: {},
-      create: {
-        name: "Đào tạo",
-        slug: "dao-tao",
-        description: "Các chương trình đào tạo nghề",
-        color: "#3B82F6",
-      },
-    }),
-    prisma.category.upsert({
-      where: { slug: "viec-lam" },
-      update: {},
-      create: {
-        name: "Việc làm",
-        slug: "viec-lam",
-        description: "Thông tin việc làm và tuyển dụng",
-        color: "#10B981",
-      },
-    }),
-    prisma.category.upsert({
-      where: { slug: "hoat-dong" },
-      update: {},
-      create: {
-        name: "Hoạt động",
-        slug: "hoat-dong",
-        description: "Các hoạt động của trung tâm",
-        color: "#F59E0B",
-      },
-    }),
-  ])
+      create: category,
+    })
+  }
 
   // Create tags
-  const tags = await Promise.all([
-    prisma.tag.upsert({
-      where: { slug: "cntt" },
+  const tags = [
+    { name: "CNTT", slug: "cntt" },
+    { name: "Massage", slug: "massage" },
+    { name: "Thủ công", slug: "thu-cong" },
+    { name: "Tuyển dụng", slug: "tuyen-dung" },
+    { name: "Hội thảo", slug: "hoi-thao" },
+    { name: "Từ thiện", slug: "tu-thien" },
+  ]
+
+  for (const tag of tags) {
+    await prisma.tag.upsert({
+      where: { slug: tag.slug },
       update: {},
-      create: {
-        name: "CNTT",
-        slug: "cntt",
-        color: "#3B82F6",
-      },
-    }),
-    prisma.tag.upsert({
-      where: { slug: "massage" },
-      update: {},
-      create: {
-        name: "Massage",
-        slug: "massage",
-        color: "#10B981",
-      },
-    }),
-  ])
+      create: tag,
+    })
+  }
 
   // Create sample posts
+  const daoTaoCategory = await prisma.category.findUnique({ where: { slug: "dao-tao" } })
+  const viecLamCategory = await prisma.category.findUnique({ where: { slug: "viec-lam" } })
+
   const posts = [
     {
-      title: "Chương trình đào tạo kỹ năng CNTT cho người khiếm thị",
-      slug: "chuong-trinh-dao-tao-ky-nang-cntt-cho-nguoi-khiem-thi",
-      excerpt: "Hội Người Mù Việt Nam tổ chức khóa đào tạo về công nghệ thông tin dành riêng cho người khiếm thị...",
-      content: `
-# Chương trình đào tạo kỹ năng CNTT cho người khiếm thị
+      title: "Chương trình đào tạo CNTT cho người khiếm thị năm 2024",
+      slug: "chuong-trinh-dao-tao-cntt-2024",
+      content: `# Chương trình đào tạo CNTT cho người khiếm thị
 
 ## Giới thiệu chương trình
 
-Trung tâm Phục hồi chức năng và Giáo dục nghề nghiệp cho Người mù Hải Dương tự hào giới thiệu chương trình đào tạo kỹ năng Công nghệ Thông tin (CNTT) dành riêng cho người khiếm thị. Đây là một sáng kiến quan trọng nhằm tạo cơ hội việc làm và hòa nhập xã hội cho cộng đồng người khiếm thị.
-
-## Mục tiêu chương trình
-
-- Trang bị kiến thức cơ bản về máy tính và công nghệ thông tin
-- Đào tạo kỹ năng sử dụng phần mềm hỗ trợ người khiếm thị
-- Phát triển khả năng lập trình cơ bản
-- Tạo cơ hội việc làm trong lĩnh vực CNTT
+Trung tâm Phục hồi chức năng và Giáo dục nghề nghiệp cho Người mù Hải Dương tổ chức chương trình đào tạo CNTT chuyên sâu dành cho người khiếm thị.
 
 ## Nội dung đào tạo
 
-### Module 1: Cơ bản về máy tính
-- Làm quen với máy tính và hệ điều hành
-- Sử dụng bàn phím và các phím tắt
+### 1. Kỹ năng cơ bản
+- Sử dụng máy tính với phần mềm đọc màn hình
+- Thao tác với bàn phím và các phím tắt
 - Quản lý file và thư mục
 
-### Module 2: Phần mềm hỗ trợ
-- NVDA Screen Reader
-- JAWS Screen Reader
-- Phần mềm phóng to màn hình
+### 2. Lập trình web
+- HTML, CSS cơ bản
+- JavaScript và các framework
+- Accessibility trong web development
 
-### Module 3: Lập trình cơ bản
-- Ngôn ngữ lập trình Python
-- Phát triển ứng dụng web cơ bản
-- Cơ sở dữ liệu
+### 3. Kỹ năng mềm
+- Làm việc nhóm
+- Giao tiếp với khách hàng
+- Quản lý thời gian
 
 ## Thời gian và địa điểm
 
-- **Thời gian**: 6 tháng (3 buổi/tuần)
+- **Thời gian**: 6 tháng (từ tháng 3 đến tháng 8/2024)
 - **Địa điểm**: Trung tâm PHCN Hải Dương
-- **Học phí**: Miễn phí cho học viên có hoàn cảnh khó khăn
+- **Học phí**: Miễn phí
 
 ## Đăng ký tham gia
 
-Để đăng ký tham gia chương trình, vui lòng liên hệ:
-- **Điện thoại**: +84 123 456 789
-- **Email**: info@ttphcn-haiduong.vn
-- **Địa chỉ**: Hải Dương, Việt Nam
-      `,
+Liên hệ hotline: **0123 456 789** để đăng ký tham gia.`,
+      excerpt: "Chương trình đào tạo CNTT 6 tháng hoàn toàn miễn phí dành cho người khiếm thị tại Hải Dương",
       status: "PUBLISHED",
-      type: "POST",
-      metaTitle: "Chương trình đào tạo CNTT cho người khiếm thị - TTPHCN Hải Dương",
-      metaDescription: "Khóa đào tạo công nghệ thông tin chuyên biệt dành cho người khiếm thị tại Hải Dương",
-      publishedAt: new Date("2024-03-12T10:00:00Z"),
+      publishedAt: new Date("2024-01-15"),
+      categoryId: daoTaoCategory?.id,
       authorId: admin.id,
       featuredImage: "/placeholder.svg?height=400&width=600&text=Đào+tạo+CNTT",
     },
     {
-      title: "Hỗ trợ sinh kế cho người khiếm thị",
-      slug: "ho-tro-sinh-ke-cho-nguoi-khiem-thi",
-      excerpt: "Chương trình hỗ trợ việc làm và tạo thu nhập cho người khiếm thị tại Hải Dương...",
-      content: `
-# Hỗ trợ sinh kế cho người khiếm thị
+      title: "Cơ hội việc làm tại các công ty công nghệ",
+      slug: "co-hoi-viec-lam-cong-ty-cong-nghe",
+      content: `# Cơ hội việc làm tại các công ty công nghệ
 
-## Tổng quan chương trình
+## Tổng quan thị trường
 
-Chương trình hỗ trợ sinh kế là một trong những hoạt động cốt lõi của Trung tâm, nhằm giúp người khiếm thị có thể tự lập về kinh tế và hòa nhập vào cộng đồng.
+Ngành công nghệ thông tin đang có nhu cầu tuyển dụng cao, đặc biệt là các vị trí phù hợp với người khiếm thị.
 
-## Các hình thức hỗ trợ
+## Các vị trí phù hợp
 
-### 1. Đào tạo nghề
-- Massage trị liệu
-- Thủ công mỹ nghệ
-- Kỹ năng CNTT
-- Dịch vụ khách hàng
+### 1. Lập trình viên
+- **Mức lương**: 8-15 triệu/tháng
+- **Yêu cầu**: Kiến thức lập trình tốt
+- **Kỹ năng**: HTML, CSS, JavaScript, Python
 
-### 2. Hỗ trợ vốn khởi nghiệp
-- Vay vốn ưu đãi
-- Tư vấn kinh doanh
-- Hỗ trợ marketing
+### 2. Tester phần mềm
+- **Mức lương**: 6-12 triệu/tháng
+- **Yêu cầu**: Tỉ mỉ, cẩn thận
+- **Kỹ năng**: Kiểm thử phần mềm, viết test case
 
-### 3. Kết nối việc làm
-- Giới thiệu việc làm
-- Tư vấn nghề nghiệp
-- Theo dõi và hỗ trợ sau khi có việc
+### 3. Content Writer
+- **Mức lương**: 5-10 triệu/tháng
+- **Yêu cầu**: Kỹ năng viết tốt
+- **Kỹ năng**: SEO, copywriting
 
-## Thành tựu đạt được
+## Hỗ trợ tìm việc
 
-- Đã hỗ trợ hơn 500 người khiếm thị có việc làm ổn định
-- Tỷ lệ thành công 85%
-- Thu nhập trung bình tăng 200%
-
-## Liên hệ tham gia
-
-Để được tư vấn và hỗ trợ, vui lòng liên hệ với chúng tôi qua:
-- Hotline: +84 123 456 789
-- Email: sinhke@ttphcn-haiduong.vn
-      `,
+Trung tâm cam kết hỗ trợ 100% học viên tìm được việc làm phù hợp sau khi hoàn thành khóa học.`,
+      excerpt: "Khám phá các cơ hội việc làm hấp dẫn trong ngành công nghệ dành cho người khiếm thị",
       status: "PUBLISHED",
-      type: "POST",
-      metaTitle: "Hỗ trợ sinh kế cho người khiếm thị - TTPHCN Hải Dương",
-      metaDescription: "Chương trình hỗ trợ việc làm và tạo thu nhập bền vững cho người khiếm thị",
-      publishedAt: new Date("2024-03-11T14:30:00Z"),
+      publishedAt: new Date("2024-01-10"),
+      categoryId: viecLamCategory?.id,
       authorId: admin.id,
-      featuredImage: "/placeholder.svg?height=400&width=600&text=Hỗ+trợ+sinh+kế",
-    },
-    {
-      title: "Giới thiệu về Trung tâm",
-      slug: "gioi-thieu-ve-trung-tam",
-      excerpt: "Trung tâm Phục hồi chức năng và Giáo dục nghề nghiệp cho Người mù Hải Dương...",
-      content: `
-# Giới thiệu về Trung tâm
-
-## Lịch sử hình thành
-
-Trung tâm Phục hồi chức năng và Giáo dục nghề nghiệp cho Người mù Hải Dương được thành lập năm 2010 với sứ mệnh hỗ trợ cộng đồng người khiếm thị trong việc phục hồi chức năng, đào tạo nghề và hòa nhập xã hội.
-
-## Tầm nhìn và sứ mệnh
-
-### Tầm nhìn
-Trở thành trung tâm hàng đầu trong việc hỗ trợ người khiếm thị tại khu vực miền Bắc, góp phần xây dựng một xã hội bình đẳng và hòa nhập.
-
-### Sứ mệnh
-- Cung cấp dịch vụ phục hồi chức năng chất lượng cao
-- Đào tạo nghề nghiệp phù hợp với nhu cầu thị trường
-- Tạo cơ hội việc làm bền vững
-- Nâng cao nhận thức cộng đồng về quyền của người khuyết tật
-
-## Cơ sở vật chất
-
-- Diện tích: 2000m²
-- 15 phòng học hiện đại
-- Thư viện sách nói và sách chữ nổi Braille
-- Phòng tin học với thiết bị hỗ trợ chuyên dụng
-- Khu vực thực hành massage và vật lý trị liệu
-
-## Đội ngũ nhân sự
-
-- 25 giảng viên và chuyên gia
-- 10 nhân viên hỗ trợ
-- 5 tình nguyện viên thường xuyên
-
-## Thành tựu nổi bật
-
-- Đào tạo thành công hơn 2000 học viên
-- Tỷ lệ có việc làm sau tốt nghiệp: 90%
-- Nhận nhiều giải thưởng về công tác xã hội
-
-## Liên hệ
-
-**Địa chỉ**: Hải Dương, Việt Nam  
-**Điện thoại**: +84 123 456 789  
-**Email**: info@ttphcn-haiduong.vn  
-**Website**: https://ttphcn-haiduong.vn
-      `,
-      status: "PUBLISHED",
-      type: "PAGE",
-      metaTitle: "Giới thiệu - Trung tâm Phục hồi chức năng Hải Dương",
-      metaDescription: "Tìm hiểu về lịch sử, sứ mệnh và hoạt động của Trung tâm PHCN Hải Dương",
-      publishedAt: new Date("2024-03-10T09:00:00Z"),
-      authorId: admin.id,
-      featuredImage: "/placeholder.svg?height=400&width=600&text=Giới+thiệu",
+      featuredImage: "/placeholder.svg?height=400&width=600&text=Việc+làm+IT",
     },
   ]
 
-  for (const postData of posts) {
-    const post = await prisma.post.upsert({
-      where: { slug: postData.slug },
+  for (const post of posts) {
+    await prisma.post.upsert({
+      where: { slug: post.slug },
       update: {},
-      create: postData,
+      create: post,
     })
+  }
 
-    // Add categories and tags
-    if (postData.slug.includes("cntt")) {
-      await prisma.postCategory.upsert({
-        where: {
-          postId_categoryId: {
-            postId: post.id,
-            categoryId: categories[0].id, // Đào tạo
-          },
-        },
-        update: {},
-        create: {
-          postId: post.id,
-          categoryId: categories[0].id,
-        },
-      })
+  // Create sample pages
+  const pages = [
+    {
+      title: "Giới thiệu",
+      slug: "gioi-thieu",
+      content: `# Giới thiệu về Trung tâm
 
-      await prisma.postTag.upsert({
-        where: {
-          postId_tagId: {
-            postId: post.id,
-            tagId: tags[0].id, // CNTT
-          },
-        },
-        update: {},
-        create: {
-          postId: post.id,
-          tagId: tags[0].id,
-        },
-      })
-    }
+Trung tâm Phục hồi chức năng và Giáo dục nghề nghiệp cho Người mù Hải Dương được thành lập với sứ mệnh hỗ trợ người khiếm thị hòa nhập cộng đồng.
 
-    if (postData.slug.includes("sinh-ke")) {
-      await prisma.postCategory.upsert({
-        where: {
-          postId_categoryId: {
-            postId: post.id,
-            categoryId: categories[1].id, // Việc làm
-          },
-        },
-        update: {},
-        create: {
-          postId: post.id,
-          categoryId: categories[1].id,
-        },
-      })
-    }
+## Sứ mệnh
+
+- Phục hồi chức năng toàn diện
+- Đào tạo nghề và kỹ năng sống
+- Tạo cơ hội việc làm
+- Nâng cao chất lượng cuộc sống
+
+## Tầm nhìn
+
+Trở thành trung tâm hàng đầu về phục hồi chức năng và đào tạo nghề cho người khiếm thị tại Việt Nam.`,
+      status: "PUBLISHED",
+      metaTitle: "Giới thiệu - Trung tâm PHCN Hải Dương",
+      metaDesc: "Tìm hiểu về sứ mệnh và tầm nhìn của Trung tâm Phục hồi chức năng Hải Dương",
+    },
+    {
+      title: "Liên hệ",
+      slug: "lien-he",
+      content: `# Liên hệ với chúng tôi
+
+## Thông tin liên hệ
+
+**Địa chỉ**: Hải Dương, Việt Nam
+**Điện thoại**: +84 123 456 789
+**Email**: info@ttphcn-haiduong.vn
+
+## Giờ làm việc
+
+- **Thứ 2 - Thứ 6**: 8:00 - 17:00
+- **Thứ 7**: 8:00 - 12:00
+- **Chủ nhật**: Nghỉ
+
+## Bản đồ
+
+[Bản đồ sẽ được hiển thị tại đây]`,
+      status: "PUBLISHED",
+      metaTitle: "Liên hệ - Trung tâm PHCN Hải Dương",
+      metaDesc: "Thông tin liên hệ và địa chỉ của Trung tâm Phục hồi chức năng Hải Dương",
+    },
+  ]
+
+  for (const page of pages) {
+    await prisma.page.upsert({
+      where: { slug: page.slug },
+      update: {},
+      create: page,
+    })
+  }
+
+  // Create settings
+  const settings = [
+    { key: "site_name", value: "Trung tâm PHCN Hải Dương" },
+    { key: "site_description", value: "Trung tâm Phục hồi chức năng và Giáo dục nghề nghiệp cho Người mù Hải Dương" },
+    { key: "contact_email", value: "info@ttphcn-haiduong.vn" },
+    { key: "contact_phone", value: "+84 123 456 789" },
+    { key: "address", value: "Hải Dương, Việt Nam" },
+    { key: "facebook_url", value: "https://facebook.com/ttphcn-haiduong" },
+    { key: "youtube_url", value: "https://youtube.com/ttphcn-haiduong" },
+  ]
+
+  for (const setting of settings) {
+    await prisma.setting.upsert({
+      where: { key: setting.key },
+      update: {},
+      create: setting,
+    })
   }
 
   console.log("Database seeded successfully!")

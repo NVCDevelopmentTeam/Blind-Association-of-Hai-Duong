@@ -1,158 +1,135 @@
 <script>
-  import { page } from '$app/stores';
-  
-  let { sidebarOpen } = $props();
-  
-  const menuItems = [
-    { 
-      id: 'dashboard', 
-      label: 'Tổng quan', 
-      icon: 'fa-tachometer-alt', 
-      href: '/admin/dashboard',
-      children: []
-    },
-    { 
-      id: 'posts', 
-      label: 'Bài viết', 
-      icon: 'fa-newspaper', 
-      href: '/admin/dashboard/posts',
-      children: [
-        { label: 'Tất cả bài viết', href: '/admin/dashboard/posts' },
-        { label: 'Thêm mới', href: '/admin/dashboard/posts/new' },
-        { label: 'Danh mục', href: '/admin/dashboard/categories' },
-        { label: 'Thẻ', href: '/admin/dashboard/tags' }
-      ]
-    },
-    { 
-      id: 'pages', 
-      label: 'Trang', 
-      icon: 'fa-file-alt', 
-      href: '/admin/dashboard/pages',
-      children: [
-        { label: 'Tất cả trang', href: '/admin/dashboard/pages' },
-        { label: 'Thêm trang mới', href: '/admin/dashboard/pages/new' }
-      ]
-    },
-    { 
-      id: 'media', 
-      label: 'Thư viện', 
-      icon: 'fa-images', 
-      href: '/admin/dashboard/media',
-      children: []
-    },
-    { 
-      id: 'comments', 
-      label: 'Bình luận', 
-      icon: 'fa-comments', 
-      href: '/admin/dashboard/comments',
-      children: []
-    },
-    { 
-      id: 'users', 
-      label: 'Người dùng', 
-      icon: 'fa-users', 
-      href: '/admin/dashboard/users',
-      children: []
-    },
-    { 
-      id: 'chat', 
-      label: 'Live Chat', 
-      icon: 'fa-comment-dots', 
-      href: '/admin/dashboard/chat',
-      children: []
-    },
-    { 
-      id: 'appearance', 
-      label: 'Giao diện', 
-      icon: 'fa-paint-brush', 
-      href: '/admin/dashboard/appearance',
-      children: [
-        { label: 'Themes', href: '/admin/dashboard/appearance/themes' },
-        { label: 'Tùy chỉnh', href: '/admin/dashboard/appearance/customize' },
-        { label: 'Menu', href: '/admin/dashboard/appearance/menus' }
-      ]
-    },
-    { 
-      id: 'settings', 
-      label: 'Cài đặt', 
-      icon: 'fa-cog', 
-      href: '/admin/dashboard/settings',
-      children: [
-        { label: 'Chung', href: '/admin/dashboard/settings' },
-        { label: 'SEO', href: '/admin/dashboard/settings/seo' },
-        { label: 'Bảo mật', href: '/admin/dashboard/settings/security' }
-      ]
-    }
-  ];
-  
-  let expandedItems = $state(new Set());
-  
-  function toggleExpanded(itemId) {
-    if (expandedItems.has(itemId)) {
-      expandedItems.delete(itemId);
-    } else {
-      expandedItems.add(itemId);
-    }
-    expandedItems = new Set(expandedItems);
-  }
-  
-  function isActive(href) {
-    return $page.url.pathname === href || $page.url.pathname.startsWith(href + '/');
-  }
+	import { page } from '$app/stores';
+	
+	let { open = false, onfoo } = $props();
+	
+	const menuItems = [
+		{
+			title: 'Bảng điều khiển',
+			icon: 'fas fa-tachometer-alt',
+			href: '/admin/dashboard',
+			active: true
+		},
+		{
+			title: 'Bài viết',
+			icon: 'fas fa-newspaper',
+			href: '/admin/dashboard/posts',
+			submenu: [
+				{ title: 'Tất cả bài viết', href: '/admin/dashboard/posts' },
+				{ title: 'Thêm mới', href: '/admin/dashboard/posts/new' },
+				{ title: 'Danh mục', href: '/admin/dashboard/categories' },
+				{ title: 'Thẻ', href: '/admin/dashboard/tags' }
+			]
+		},
+		{
+			title: 'Trang',
+			icon: 'fas fa-file-alt',
+			href: '/admin/dashboard/pages'
+		},
+		{
+			title: 'Media',
+			icon: 'fas fa-images',
+			href: '/admin/dashboard/media'
+		},
+		{
+			title: 'Bình luận',
+			icon: 'fas fa-comments',
+			href: '/admin/dashboard/comments'
+		},
+		{
+			title: 'Người dùng',
+			icon: 'fas fa-users',
+			href: '/admin/dashboard/users'
+		},
+		{
+			title: 'Giao diện',
+			icon: 'fas fa-paint-brush',
+			href: '/admin/dashboard/appearance',
+			submenu: [
+				{ title: 'Themes', href: '/admin/dashboard/themes' },
+				{ title: 'Menu', href: '/admin/dashboard/menus' },
+				{ title: 'Widgets', href: '/admin/dashboard/widgets' }
+			]
+		},
+		{
+			title: 'Cài đặt',
+			icon: 'fas fa-cog',
+			href: '/admin/dashboard/settings'
+		}
+	];
+	
+	function isActive(href) {
+		return $page.url.pathname === href;
+	}
+	
+	function closeSidebar() {
+		open = false;
+		if (onfoo) {
+			onfoo();
+		}
+	}
 </script>
 
-<aside class="fixed left-0 top-16 h-[calc(100vh-4rem)] bg-white dark:bg-gray-800 shadow-lg border-r border-gray-200 dark:border-gray-700 transition-all duration-300 z-20 {sidebarOpen ? 'w-64' : 'w-16'} overflow-y-auto">
-  <nav class="p-4">
-    <ul class="space-y-2">
-      {#each menuItems as item}
-        <li>
-          {#if item.children.length > 0}
-            <div>
-              <button 
-                onclick={() => toggleExpanded(item.id)}
-                class="w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg transition-colors {isActive(item.href) ? 'bg-blue-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}"
-                title={item.label}
-              >
-                <div class="flex items-center gap-3">
-                  <i class="fas {item.icon} {sidebarOpen ? '' : 'text-center w-full'}"></i>
-                  {#if sidebarOpen}
-                    <span>{item.label}</span>
-                  {/if}
-                </div>
-                {#if sidebarOpen}
-                  <i class="fas fa-chevron-{expandedItems.has(item.id) ? 'up' : 'down'} text-xs"></i>
-                {/if}
-              </button>
-              
-              {#if sidebarOpen && expandedItems.has(item.id)}
-                <ul class="mt-2 ml-6 space-y-1">
-                  {#each item.children as child}
-                    <li>
-                      <a 
-                        href={child.href}
-                        class="block px-3 py-2 text-sm rounded-lg transition-colors {isActive(child.href) ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}"
-                      >
-                        {child.label}
-                      </a>
-                    </li>
-                  {/each}
-                </ul>
-              {/if}
-            </div>
-          {:else}
-            <a 
-              href={item.href}
-              class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors {isActive(item.href) ? 'bg-blue-600 text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}"
-              title={item.label}
-            >
-              <i class="fas {item.icon} {sidebarOpen ? '' : 'text-center w-full'}"></i>
-              {#if sidebarOpen}
-                <span>{item.label}</span>
-              {/if}
-            </a>
-          {/if}
-        </li>
-      {/each}
-    </ul>
-  </nav>
-</aside>
+<!-- Mobile overlay -->
+{#if open}
+	<div class="fixed inset-0 z-40 lg:hidden" role="button" tabindex="0" aria-label="Close sidebar" onclick={closeSidebar} onkeydown={(e) => { if (e.key === 'Enter') closeSidebar(); }}></div>
+{/if}
+
+<!-- Sidebar -->
+<div class="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform {open ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0">
+	<div class="flex flex-col h-full">
+		<!-- Sidebar header -->
+		<div class="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-700">
+			<div class="flex items-center">
+				<i class="fas fa-shield-alt text-blue-600 text-xl"></i>
+				<span class="ml-2 text-lg font-semibold text-gray-900 dark:text-white">Admin</span>
+			</div>
+			<button onclick={closeSidebar} class="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700" aria-label="Close sidebar">
+				<i class="fas fa-times"></i>
+			</button>
+		</div>
+
+		<!-- Navigation -->
+		<nav class="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
+			{#each menuItems as item}
+				<div>
+					<a
+						href={item.href}
+						class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors {isActive(item.href) ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}"
+						onclick={closeSidebar}
+						aria-label={item.title}
+					>
+						<i class="{item.icon} mr-3"></i>
+						{item.title}
+						{#if item.submenu}
+							<i class="fas fa-chevron-down ml-auto"></i>
+						{/if}
+					</a>
+					
+					{#if item.submenu}
+						<div class="ml-6 mt-2 space-y-1">
+							{#each item.submenu as subitem}
+								<a
+									href={subitem.href}
+									class="block px-3 py-2 text-sm text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors {isActive(subitem.href) ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white' : ''}"
+									onclick={closeSidebar}
+									aria-label={subitem.title}
+								>
+									{subitem.title}
+								</a>
+							{/each}
+						</div>
+					{/if}
+				</div>
+			{/each}
+		</nav>
+
+		<!-- Sidebar footer -->
+		<div class="p-4 border-t border-gray-200 dark:border-gray-700">
+			<a href="/" class="flex items-center px-3 py-2 text-sm text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" aria-label="View website">
+				<i class="fas fa-external-link-alt mr-3"></i>
+				Xem website
+			</a>
+		</div>
+	</div>
+</div>

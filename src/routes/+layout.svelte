@@ -14,16 +14,22 @@
 
   let { children } = $props();
 
-  const userLang = derived(page, ($page) => {
-    return navigator.language.split('-')[0];
+  const metaTitle = derived(page, ($page) => {
+    return $page.data?.title || 'Trung tâm Phục hồi chức năng Hải Dương';
   });
 
-  const supportedLangs = ['vi', 'en'];
+  const metaDescription = derived(page, ($page) => {
+    return $page.data?.description || 'Trung tâm hỗ trợ phục hồi chức năng, đào tạo nghề và tạo việc làm cho người khiếm thị tại Hải Dương';
+  });
 
-  $effect(() => {
+  onMount(() => {
     if (browser) {
-      if (supportedLangs.includes($userLang)) {
-        locale.set($userLang);
+      // Auto-detect language based on location/browser
+      const userLang = navigator.language.split('-')[0];
+      const supportedLangs = ['vi', 'en'];
+      
+      if (supportedLangs.includes(userLang)) {
+        locale.set(userLang);
       } else {
         locale.set('vi'); // Default to Vietnamese
       }
@@ -49,14 +55,6 @@
       trackPageView();
     }
   });
-
-  const metaTitle = derived(page, ($page) => {
-    return $page.data?.title || 'Trung tâm Phục hồi chức năng Hải Dương';
-  });
-
-  const metaDescription = derived(page, ($page) => {
-    return $page.data?.description || 'Trung tâm hỗ trợ phục hồi chức năng, đào tạo nghề và tạo việc làm cho người khiếm thị tại Hải Dương';
-  });
 </script>
 
 <svelte:head>
@@ -70,7 +68,7 @@
 
 <div class="min-h-screen flex flex-col">
   <!-- Skip to main content link for screen readers -->
-  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50">
+  <a href="#main-content" class="skip-link">
     Chuyển đến nội dung chính
   </a>
 
@@ -82,7 +80,7 @@
 
   <!-- Main Content -->
   <main id="main-content" class="flex-1" role="main">
-    {@html children()}
+    {children}
   </main>
 
   <!-- Footer -->

@@ -2,28 +2,27 @@ import express from "express"
 import { createServer } from "http"
 import { Server } from "socket.io"
 import cors from "cors"
-import { PrismaClient } from "@prisma/client"
-import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
+import bcrypt from "bcryptjs"
+import { PrismaClient } from "@prisma/client"
 import multer from "multer"
 import path from "path"
 import { fileURLToPath } from "url"
-import { dirname } from "path"
 
 const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const __dirname = path.dirname(__filename)
 
 const app = express()
 const server = createServer(app)
 const io = new Server(server, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    origin: ["http://localhost:5173", "http://localhost:4173"],
+    methods: ["GET", "POST"],
   },
 })
 
 const prisma = new PrismaClient()
-const JWT_SECRET = process.env.JWT_SECRET || "hai-duong-cms-secret-key-2024"
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key"
 
 // Middleware
 app.use(cors())
@@ -43,11 +42,9 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
-  },
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|mp4|mp3/
+    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|mp3|mp4|webm/
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase())
     const mimetype = allowedTypes.test(file.mimetype)
 
@@ -65,83 +62,30 @@ const authenticateToken = (req, res, next) => {
   const token = authHeader && authHeader.split(" ")[1]
 
   if (!token) {
-    return res.status(401).json({ error: "Access token required" })
+    return res.sendStatus(401)
   }
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ error: "Invalid token" })
+    if (err) return res.sendStatus(403)
     req.user = user
     next()
   })
 }
 
-// Admin middleware
-const requireAdmin = (req, res, next) => {
-  if (req.user.role !== "ADMIN" && req.user.role !== "SUPER_ADMIN") {
-    return res.status(403).json({ error: "Admin access required" })
-  }
-  next()
-}
-
 // Auth routes
 app.post("/api/auth/login", async (req, res) => {
   try {
-    const { email, password, rememberMe } = req.body
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        error: "Email không hợp lệ. Vui lòng nhập đúng định dạng email có chứa ký tự @.",
-      })
-    }
-
-    // Validate password requirements
-    const passwordErrors = []
-    if (!password || password.length < 8) {
-      passwordErrors.push("Mật khẩu phải có ít nhất 8 ký tự")
-    }
-    if (!/[A-Z]/.test(password)) {
-      passwordErrors.push("Mật khẩu phải có ít nhất 1 chữ hoa")
-    }
-    if (!/[a-z]/.test(password)) {
-      passwordErrors.push("Mật khẩu phải có ít nhất 1 chữ thường")
-    }
-    if (!/[0-9]/.test(password)) {
-      passwordErrors.push("Mật khẩu phải có ít nhất 1 số")
-    }
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      passwordErrors.push("Mật khẩu phải có ít nhất 1 ký tự đặc biệt")
-    }
-
-    if (passwordErrors.length > 0) {
-      return res.status(400).json({
-        error: passwordErrors.join(". "),
-      })
-    }
+    const { email, password } = req.body
 
     const user = await prisma.user.findUnique({
       where: { email },
     })
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({
-        error: "Email hoặc mật khẩu không đúng. Vui lòng kiểm tra lại thông tin đăng nhập.",
-      })
+      return res.status(401).json({ error: "Email hoặc mật khẩu không đúng" })
     }
 
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        email: user.email,
-        role: user.role,
-        name: user.name,
-      },
-      JWT_SECRET,
-      {
-        expiresIn: rememberMe ? "30d" : "24h",
-      },
-    )
+    const token = jwt.sign({ userId: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: "24h" })
 
     res.json({
       token,
@@ -154,7 +98,7 @@ app.post("/api/auth/login", async (req, res) => {
     })
   } catch (error) {
     console.error("Login error:", error)
-    res.status(500).json({ error: "Lỗi server. Vui lòng thử lại sau." })
+    res.status(500).json({ error: "Lỗi server" })
   }
 })
 
@@ -167,82 +111,39 @@ app.post("/api/auth/forgot-password", async (req, res) => {
     })
 
     if (!user) {
-      return res.status(404).json({
-        error: "Không tìm thấy tài khoản với email này.",
-      })
+      return res.status(404).json({ error: "Email không tồn tại trong hệ thống" })
     }
 
-    // In a real app, you would send an email with reset link
-    res.json({
-      message: "Đã gửi email khôi phục mật khẩu. Vui lòng kiểm tra hộp thư của bạn.",
-    })
+    // In a real app, you would send an email here
+    res.json({ message: "Đã gửi email khôi phục mật khẩu. Vui lòng kiểm tra hộp thư của bạn." })
   } catch (error) {
     console.error("Forgot password error:", error)
-    res.status(500).json({ error: "Lỗi server. Vui lòng thử lại sau." })
+    res.status(500).json({ error: "Lỗi server" })
   }
-})
-
-app.get("/api/auth/verify", authenticateToken, (req, res) => {
-  res.json({ user: req.user })
 })
 
 // Posts routes
 app.get("/api/posts", async (req, res) => {
   try {
-    const { page = 1, limit = 10, category, tag, status = "PUBLISHED", type = "POST", search, featured } = req.query
+    const { page = 1, limit = 10, status = "PUBLISHED", category, tag } = req.query
+    const skip = (page - 1) * limit
 
     const where = {
-      status,
-      type,
-      ...(category && {
-        categories: {
-          some: {
-            category: {
-              slug: category,
-            },
-          },
-        },
-      }),
-      ...(tag && {
-        tags: {
-          some: {
-            tag: {
-              slug: tag,
-            },
-          },
-        },
-      }),
-      ...(search && {
-        OR: [
-          { title: { contains: search, mode: "insensitive" } },
-          { content: { contains: search, mode: "insensitive" } },
-          { excerpt: { contains: search, mode: "insensitive" } },
-        ],
-      }),
+      status: status,
+      ...(category && { category: { slug: category } }),
+      ...(tag && { tags: { some: { tag: { slug: tag } } } }),
     }
 
     const posts = await prisma.post.findMany({
       where,
       include: {
-        author: {
-          select: { id: true, name: true, avatar: true },
-        },
-        categories: {
-          include: {
-            category: true,
-          },
-        },
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
-        _count: {
-          select: { comments: true },
-        },
+        author: { select: { name: true } },
+        category: true,
+        tags: { include: { tag: true } },
+        _count: { select: { comments: true } },
       },
       orderBy: { publishedAt: "desc" },
-      skip: (page - 1) * limit,
+      skip: Number.parseInt(skip),
       take: Number.parseInt(limit),
     })
 
@@ -270,41 +171,26 @@ app.get("/api/posts/:slug", async (req, res) => {
     const post = await prisma.post.findUnique({
       where: { slug },
       include: {
-        author: {
-          select: { id: true, name: true, avatar: true, bio: true },
-        },
-        categories: {
-          include: {
-            category: true,
-          },
-        },
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
+        author: { select: { name: true } },
+        category: true,
+        tags: { include: { tag: true } },
         comments: {
           where: { status: "APPROVED" },
-          include: {
-            author: {
-              select: { id: true, name: true, avatar: true },
-            },
-            replies: {
-              include: {
-                author: {
-                  select: { id: true, name: true, avatar: true },
-                },
-              },
-            },
-          },
+          include: { author: { select: { name: true } } },
           orderBy: { createdAt: "desc" },
         },
       },
     })
 
     if (!post) {
-      return res.status(404).json({ error: "Không tìm thấy bài viết" })
+      return res.status(404).json({ error: "Bài viết không tồn tại" })
     }
+
+    // Increment view count
+    await prisma.post.update({
+      where: { id: post.id },
+      data: { views: { increment: 1 } },
+    })
 
     res.json(post)
   } catch (error) {
@@ -313,40 +199,84 @@ app.get("/api/posts/:slug", async (req, res) => {
   }
 })
 
-// Admin routes
-app.get("/api/admin/posts", authenticateToken, requireAdmin, async (req, res) => {
+// Categories routes
+app.get("/api/categories", async (req, res) => {
   try {
-    const { page = 1, limit = 10, status, search } = req.query
+    const categories = await prisma.category.findMany({
+      include: {
+        _count: { select: { posts: true } },
+      },
+      orderBy: { name: "asc" },
+    })
 
-    const where = {
-      ...(status && { status }),
-      ...(search && {
-        OR: [
-          { title: { contains: search, mode: "insensitive" } },
-          { content: { contains: search, mode: "insensitive" } },
-        ],
-      }),
-    }
+    res.json(categories)
+  } catch (error) {
+    console.error("Get categories error:", error)
+    res.status(500).json({ error: "Lỗi server" })
+  }
+})
+
+// Tags routes
+app.get("/api/tags", async (req, res) => {
+  try {
+    const tags = await prisma.tag.findMany({
+      include: {
+        _count: { select: { posts: true } },
+      },
+      orderBy: { name: "asc" },
+    })
+
+    res.json(tags)
+  } catch (error) {
+    console.error("Get tags error:", error)
+    res.status(500).json({ error: "Lỗi server" })
+  }
+})
+
+// Admin routes
+app.get("/api/admin/statistics", authenticateToken, async (req, res) => {
+  try {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const [totalPosts, totalUsers, todayVisitors, totalVisitors, activeChatSessions] = await Promise.all([
+      prisma.post.count(),
+      prisma.user.count(),
+      prisma.visitor.count({ where: { createdAt: { gte: today } } }),
+      prisma.visitor.count(),
+      prisma.chatSession.count({ where: { isActive: true } }),
+    ])
+
+    res.json({
+      totalPosts,
+      totalUsers,
+      todayVisitors,
+      totalVisitors,
+      activeChatSessions,
+      onlineUsers: io.engine.clientsCount,
+    })
+  } catch (error) {
+    console.error("Get statistics error:", error)
+    res.status(500).json({ error: "Lỗi server" })
+  }
+})
+
+app.get("/api/admin/posts", authenticateToken, async (req, res) => {
+  try {
+    const { page = 1, limit = 10, status } = req.query
+    const skip = (page - 1) * limit
+
+    const where = status ? { status } : {}
 
     const posts = await prisma.post.findMany({
       where,
       include: {
-        author: {
-          select: { id: true, name: true },
-        },
-        categories: {
-          include: {
-            category: true,
-          },
-        },
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
+        author: { select: { name: true } },
+        category: true,
+        _count: { select: { comments: true } },
       },
-      orderBy: { updatedAt: "desc" },
-      skip: (page - 1) * limit,
+      orderBy: { createdAt: "desc" },
+      skip: Number.parseInt(skip),
       take: Number.parseInt(limit),
     })
 
@@ -367,22 +297,9 @@ app.get("/api/admin/posts", authenticateToken, requireAdmin, async (req, res) =>
   }
 })
 
-app.post("/api/admin/posts", authenticateToken, requireAdmin, async (req, res) => {
+app.post("/api/admin/posts", authenticateToken, async (req, res) => {
   try {
-    const {
-      title,
-      slug,
-      content,
-      excerpt,
-      featuredImage,
-      status = "DRAFT",
-      type = "POST",
-      metaTitle,
-      metaDescription,
-      publishedAt,
-      categories = [],
-      tags = [],
-    } = req.body
+    const { title, slug, content, excerpt, featuredImage, status, categoryId, tags } = req.body
 
     const post = await prisma.post.create({
       data: {
@@ -392,36 +309,17 @@ app.post("/api/admin/posts", authenticateToken, requireAdmin, async (req, res) =
         excerpt,
         featuredImage,
         status,
-        type,
-        metaTitle,
-        metaDescription,
-        publishedAt: publishedAt ? new Date(publishedAt) : null,
+        categoryId,
         authorId: req.user.userId,
-        categories: {
-          create: categories.map((categoryId) => ({
-            categoryId,
-          })),
-        },
+        publishedAt: status === "PUBLISHED" ? new Date() : null,
         tags: {
-          create: tags.map((tagId) => ({
-            tagId,
-          })),
+          create: tags?.map((tagId) => ({ tagId })) || [],
         },
       },
       include: {
-        author: {
-          select: { id: true, name: true },
-        },
-        categories: {
-          include: {
-            category: true,
-          },
-        },
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
+        author: { select: { name: true } },
+        category: true,
+        tags: { include: { tag: true } },
       },
     })
 
@@ -432,27 +330,10 @@ app.post("/api/admin/posts", authenticateToken, requireAdmin, async (req, res) =
   }
 })
 
-app.put("/api/admin/posts/:id", authenticateToken, requireAdmin, async (req, res) => {
+app.put("/api/admin/posts/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params
-    const {
-      title,
-      slug,
-      content,
-      excerpt,
-      featuredImage,
-      status,
-      type,
-      metaTitle,
-      metaDescription,
-      publishedAt,
-      categories = [],
-      tags = [],
-    } = req.body
-
-    // Delete existing relationships
-    await prisma.postCategory.deleteMany({ where: { postId: id } })
-    await prisma.postTag.deleteMany({ where: { postId: id } })
+    const { title, slug, content, excerpt, featuredImage, status, categoryId, tags } = req.body
 
     const post = await prisma.post.update({
       where: { id },
@@ -463,35 +344,17 @@ app.put("/api/admin/posts/:id", authenticateToken, requireAdmin, async (req, res
         excerpt,
         featuredImage,
         status,
-        type,
-        metaTitle,
-        metaDescription,
-        publishedAt: publishedAt ? new Date(publishedAt) : null,
-        categories: {
-          create: categories.map((categoryId) => ({
-            categoryId,
-          })),
-        },
+        categoryId,
+        publishedAt: status === "PUBLISHED" ? new Date() : null,
         tags: {
-          create: tags.map((tagId) => ({
-            tagId,
-          })),
+          deleteMany: {},
+          create: tags?.map((tagId) => ({ tagId })) || [],
         },
       },
       include: {
-        author: {
-          select: { id: true, name: true },
-        },
-        categories: {
-          include: {
-            category: true,
-          },
-        },
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
+        author: { select: { name: true } },
+        category: true,
+        tags: { include: { tag: true } },
       },
     })
 
@@ -502,7 +365,7 @@ app.put("/api/admin/posts/:id", authenticateToken, requireAdmin, async (req, res
   }
 })
 
-app.delete("/api/admin/posts/:id", authenticateToken, requireAdmin, async (req, res) => {
+app.delete("/api/admin/posts/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params
 
@@ -517,202 +380,18 @@ app.delete("/api/admin/posts/:id", authenticateToken, requireAdmin, async (req, 
   }
 })
 
-// Categories routes
-app.get("/api/categories", async (req, res) => {
-  try {
-    const categories = await prisma.category.findMany({
-      include: {
-        _count: {
-          select: { posts: true },
-        },
-      },
-      orderBy: { name: "asc" },
-    })
-
-    res.json(categories)
-  } catch (error) {
-    console.error("Get categories error:", error)
-    res.status(500).json({ error: "Lỗi server" })
-  }
-})
-
-app.post("/api/admin/categories", authenticateToken, requireAdmin, async (req, res) => {
-  try {
-    const { name, slug, description, color } = req.body
-
-    const category = await prisma.category.create({
-      data: {
-        name,
-        slug,
-        description,
-        color,
-      },
-    })
-
-    res.status(201).json(category)
-  } catch (error) {
-    console.error("Create category error:", error)
-    res.status(500).json({ error: "Lỗi server" })
-  }
-})
-
-// Tags routes
-app.get("/api/tags", async (req, res) => {
-  try {
-    const tags = await prisma.tag.findMany({
-      include: {
-        _count: {
-          select: { posts: true },
-        },
-      },
-      orderBy: { name: "asc" },
-    })
-
-    res.json(tags)
-  } catch (error) {
-    console.error("Get tags error:", error)
-    res.status(500).json({ error: "Lỗi server" })
-  }
-})
-
-app.post("/api/admin/tags", authenticateToken, requireAdmin, async (req, res) => {
-  try {
-    const { name, slug, color } = req.body
-
-    const tag = await prisma.tag.create({
-      data: {
-        name,
-        slug,
-        color,
-      },
-    })
-
-    res.status(201).json(tag)
-  } catch (error) {
-    console.error("Create tag error:", error)
-    res.status(500).json({ error: "Lỗi server" })
-  }
-})
-
-// Media upload
-app.post("/api/admin/upload", authenticateToken, requireAdmin, upload.single("file"), async (req, res) => {
+// File upload route
+app.post("/api/admin/upload", authenticateToken, upload.single("file"), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "Không có file được tải lên" })
     }
 
-    const media = await prisma.media.create({
-      data: {
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-        mimeType: req.file.mimetype,
-        size: req.file.size,
-        url: `/uploads/${req.file.filename}`,
-      },
-    })
-
-    res.json(media)
+    const fileUrl = `/uploads/${req.file.filename}`
+    res.json({ url: fileUrl, filename: req.file.filename })
   } catch (error) {
     console.error("Upload error:", error)
-    res.status(500).json({ error: "Lỗi server" })
-  }
-})
-
-app.get("/api/admin/media", authenticateToken, requireAdmin, async (req, res) => {
-  try {
-    const media = await prisma.media.findMany({
-      orderBy: { createdAt: "desc" },
-    })
-
-    res.json(media)
-  } catch (error) {
-    console.error("Get media error:", error)
-    res.status(500).json({ error: "Lỗi server" })
-  }
-})
-
-// Settings routes
-app.get("/api/admin/settings", authenticateToken, requireAdmin, async (req, res) => {
-  try {
-    const settings = await prisma.setting.findMany()
-    const settingsObj = {}
-
-    settings.forEach((setting) => {
-      let value = setting.value
-      if (setting.type === "BOOLEAN") {
-        value = value === "true"
-      } else if (setting.type === "NUMBER") {
-        value = Number.parseFloat(value)
-      } else if (setting.type === "JSON") {
-        value = JSON.parse(value)
-      }
-      settingsObj[setting.key] = value
-    })
-
-    res.json(settingsObj)
-  } catch (error) {
-    console.error("Get settings error:", error)
-    res.status(500).json({ error: "Lỗi server" })
-  }
-})
-
-app.put("/api/admin/settings", authenticateToken, requireAdmin, async (req, res) => {
-  try {
-    const settings = req.body
-
-    for (const [key, value] of Object.entries(settings)) {
-      let type = "STRING"
-      let stringValue = String(value)
-
-      if (typeof value === "boolean") {
-        type = "BOOLEAN"
-        stringValue = String(value)
-      } else if (typeof value === "number") {
-        type = "NUMBER"
-        stringValue = String(value)
-      } else if (typeof value === "object") {
-        type = "JSON"
-        stringValue = JSON.stringify(value)
-      }
-
-      await prisma.setting.upsert({
-        where: { key },
-        update: { value: stringValue, type },
-        create: { key, value: stringValue, type },
-      })
-    }
-
-    res.json({ success: true })
-  } catch (error) {
-    console.error("Update settings error:", error)
-    res.status(500).json({ error: "Lỗi server" })
-  }
-})
-
-// Statistics
-app.get("/api/admin/statistics", authenticateToken, requireAdmin, async (req, res) => {
-  try {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    const [totalPosts, totalUsers, todayVisitors, totalVisitors, activeChatSessions] = await Promise.all([
-      prisma.post.count({ where: { status: "PUBLISHED" } }),
-      prisma.user.count(),
-      prisma.visitor.count({ where: { createdAt: { gte: today } } }),
-      prisma.visitor.count(),
-      prisma.chatSession.count({ where: { status: "ACTIVE" } }),
-    ])
-
-    res.json({
-      totalPosts,
-      totalUsers,
-      todayVisitors,
-      totalVisitors,
-      activeChatSessions,
-    })
-  } catch (error) {
-    console.error("Get statistics error:", error)
-    res.status(500).json({ error: "Lỗi server" })
+    res.status(500).json({ error: "Lỗi tải file" })
   }
 })
 
@@ -721,7 +400,7 @@ app.post("/api/track-visitor", async (req, res) => {
   try {
     const { page, referrer } = req.body
     const ip = req.ip || req.connection.remoteAddress
-    const userAgent = req.headers["user-agent"]
+    const userAgent = req.get("User-Agent")
 
     await prisma.visitor.create({
       data: {
@@ -739,114 +418,89 @@ app.post("/api/track-visitor", async (req, res) => {
   }
 })
 
-// Chat system with Socket.io
-const activeChatSessions = new Map()
-const adminSockets = new Map()
-
+// Socket.io for real-time features
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id)
 
-  // Join chat session
   socket.on("join-chat", async (data) => {
     const { sessionId, userId, isAdmin } = data
 
-    socket.join(sessionId)
-
-    if (isAdmin) {
-      adminSockets.set(socket.id, { sessionId, userId })
-    }
-
-    // Get or create chat session
-    let session = await prisma.chatSession.findUnique({
-      where: { sessionId },
-      include: {
-        messages: {
-          orderBy: { createdAt: "asc" },
-          include: {
-            user: {
-              select: { id: true, name: true },
-            },
-          },
-        },
-      },
-    })
-
-    if (!session) {
-      session = await prisma.chatSession.create({
-        data: {
-          sessionId,
-          userId,
-        },
-        include: {
-          messages: true,
-        },
+    try {
+      let chatSession = await prisma.chatSession.findUnique({
+        where: { sessionId },
       })
-    }
 
-    socket.emit("chat-history", session.messages)
+      if (!chatSession) {
+        chatSession = await prisma.chatSession.create({
+          data: {
+            sessionId,
+            userId,
+            isActive: true,
+          },
+        })
+      }
+
+      socket.join(sessionId)
+
+      // Send chat history
+      const messages = await prisma.chatMessage.findMany({
+        where: { sessionId: chatSession.id },
+        orderBy: { createdAt: "asc" },
+      })
+
+      socket.emit("chat-history", messages)
+
+      if (isAdmin) {
+        // Notify user that admin joined
+        socket.to(sessionId).emit("admin-joined")
+
+        // Update session to show admin connected
+        await prisma.chatSession.update({
+          where: { id: chatSession.id },
+          data: { connectedToAdmin: true },
+        })
+      }
+    } catch (error) {
+      console.error("Join chat error:", error)
+    }
   })
 
-  // Handle chat messages
   socket.on("send-message", async (data) => {
     const { sessionId, content, userId, isAdmin, type = "TEXT" } = data
 
     try {
-      // Save message to database
+      const chatSession = await prisma.chatSession.findUnique({
+        where: { sessionId },
+      })
+
+      if (!chatSession) return
+
       const message = await prisma.chatMessage.create({
         data: {
           content,
           type,
           isFromUser: !isAdmin,
           isFromAdmin: isAdmin,
-          sessionId,
-          userId,
-        },
-        include: {
-          user: {
-            select: { id: true, name: true },
-          },
+          sessionId: chatSession.id,
         },
       })
 
       // Broadcast message to all users in the session
       io.to(sessionId).emit("new-message", message)
 
-      // If user message and no admin in session, try AI response
-      if (!isAdmin && !activeChatSessions.get(sessionId)?.hasAdmin) {
+      // If message is from user and no admin is connected, try AI response
+      if (!isAdmin && !chatSession.connectedToAdmin) {
         setTimeout(async () => {
-          const aiResponse = await generateAIResponse(content)
+          const aiResponse = generateAIResponse(content)
 
-          if (aiResponse.needsAdmin) {
-            // Escalate to admin
-            await prisma.chatSession.update({
-              where: { sessionId },
-              data: {
-                status: "WAITING_ADMIN",
-                isWithAdmin: true,
-              },
+          if (aiResponse.needsHuman) {
+            // Notify admins about new chat session needing attention
+            socket.broadcast.emit("admin-notification", {
+              type: "chat-request",
+              message: "Người dùng cần hỗ trợ từ nhân viên tư vấn",
+              sessionId,
+              timestamp: new Date(),
             })
-
-            // Notify admins
-            adminSockets.forEach((adminData, socketId) => {
-              io.to(socketId).emit("admin-notification", {
-                type: "new-chat-request",
-                sessionId,
-                message: "Có yêu cầu hỗ trợ mới từ khách hàng",
-              })
-            })
-
-            const systemMessage = await prisma.chatMessage.create({
-              data: {
-                content:
-                  "Câu hỏi của bạn cần được hỗ trợ trực tiếp. Chúng tôi đang kết nối bạn với nhân viên tư vấn...",
-                type: "SYSTEM",
-                isFromUser: false,
-                isFromAdmin: false,
-                sessionId,
-              },
-            })
-
-            io.to(sessionId).emit("new-message", systemMessage)
           } else {
             const aiMessage = await prisma.chatMessage.create({
               data: {
@@ -854,7 +508,7 @@ io.on("connection", (socket) => {
                 type: "TEXT",
                 isFromUser: false,
                 isFromAdmin: false,
-                sessionId,
+                sessionId: chatSession.id,
               },
             })
 
@@ -864,215 +518,90 @@ io.on("connection", (socket) => {
       }
     } catch (error) {
       console.error("Send message error:", error)
-      socket.emit("error", { message: "Không thể gửi tin nhắn" })
     }
   })
 
-  // Admin joins chat
-  socket.on("admin-join-chat", async (data) => {
-    const { sessionId, adminId } = data
-
-    await prisma.chatSession.update({
-      where: { sessionId },
-      data: {
-        status: "ACTIVE",
-        adminId,
-        isWithAdmin: true,
-      },
-    })
-
-    activeChatSessions.set(sessionId, { hasAdmin: true, adminId })
-
-    const systemMessage = await prisma.chatMessage.create({
-      data: {
-        content: "Nhân viên tư vấn đã tham gia cuộc trò chuyện",
-        type: "SYSTEM",
-        isFromUser: false,
-        isFromAdmin: false,
-        sessionId,
-      },
-    })
-
-    io.to(sessionId).emit("new-message", systemMessage)
-    io.to(sessionId).emit("admin-joined")
-  })
-
-  // Video call request
   socket.on("request-video-call", (data) => {
-    const { sessionId, userId } = data
-    io.to(sessionId).emit("video-call-request", { userId })
+    const { sessionId } = data
+    socket.to(sessionId).emit("video-call-request")
   })
 
-  // Voice call request
   socket.on("request-voice-call", (data) => {
-    const { sessionId, userId } = data
-    io.to(sessionId).emit("voice-call-request", { userId })
+    const { sessionId } = data
+    socket.to(sessionId).emit("voice-call-request")
   })
 
-  // File upload in chat
   socket.on("upload-file", async (data) => {
     const { sessionId, fileData, fileName, fileType } = data
 
-    // Save file and create message
-    const message = await prisma.chatMessage.create({
-      data: {
-        content: fileName,
-        type: "FILE",
-        isFromUser: true,
-        isFromAdmin: false,
-        sessionId,
-      },
-    })
+    try {
+      const chatSession = await prisma.chatSession.findUnique({
+        where: { sessionId },
+      })
 
-    io.to(sessionId).emit("new-message", message)
+      if (!chatSession) return
+
+      const message = await prisma.chatMessage.create({
+        data: {
+          content: `File: ${fileName}`,
+          type: "FILE",
+          isFromUser: true,
+          isFromAdmin: false,
+          sessionId: chatSession.id,
+        },
+      })
+
+      io.to(sessionId).emit("new-message", message)
+    } catch (error) {
+      console.error("Upload file error:", error)
+    }
   })
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id)
-    adminSockets.delete(socket.id)
   })
 })
 
 // AI Response Generator
-async function generateAIResponse(message) {
+function generateAIResponse(message) {
   const lowerMessage = message.toLowerCase()
 
-  // Simple AI logic - in a real app, you'd use a proper AI service
-  if (lowerMessage.includes("đào tạo") || lowerMessage.includes("khóa học")) {
-    return {
+  const responses = {
+    "đào tạo": {
       message:
         "Chúng tôi có nhiều khóa đào tạo nghề như CNTT, massage, thủ công mỹ nghệ. Bạn quan tâm đến lĩnh vực nào?",
-      needsAdmin: false,
-    }
-  } else if (lowerMessage.includes("việc làm") || lowerMessage.includes("tuyển dụng")) {
-    return {
+      needsHuman: false,
+    },
+    "việc làm": {
       message:
         'Trung tâm thường xuyên cập nhật thông tin việc làm phù hợp với người khiếm thị. Bạn có thể xem tại mục "Việc làm" hoặc liên hệ trực tiếp.',
-      needsAdmin: false,
-    }
-  } else if (lowerMessage.includes("liên hệ") || lowerMessage.includes("địa chỉ")) {
-    return {
+      needsHuman: false,
+    },
+    "liên hệ": {
+      message: "Bạn có thể liên hệ qua số điện thoại: +84 123 456 789 hoặc email: info@ttphcn-haiduong.vn",
+      needsHuman: false,
+    },
+    "phục hồi": {
       message:
-        "Bạn có thể liên hệ với chúng tôi qua số điện thoại: +84 123 456 789 hoặc email: info@ttphcn-haiduong.vn",
-      needsAdmin: false,
+        "Chúng tôi cung cấp các dịch vụ phục hồi chức năng toàn diện, bao gồm định hướng di chuyển, kỹ năng sống độc lập.",
+      needsHuman: false,
+    },
+  }
+
+  for (const [keyword, response] of Object.entries(responses)) {
+    if (lowerMessage.includes(keyword)) {
+      return response
     }
-  } else if (lowerMessage.includes("phục hồi")) {
-    return {
-      message:
-        "Chúng tôi cung cấp các dịch vụ phục hồi chức năng toàn diện, bao gồm định hướng di chuyển, kỹ năng sống độc lập và hỗ trợ tâm lý.",
-      needsAdmin: false,
-    }
-  } else if (lowerMessage.includes("giá") || lowerMessage.includes("chi phí") || lowerMessage.includes("học phí")) {
-    return {
-      message: "Để biết thông tin chi tiết về học phí và chi phí các dịch vụ, tôi sẽ kết nối bạn với nhân viên tư vấn.",
-      needsAdmin: true,
-    }
-  } else if (lowerMessage.includes("đăng ký") || lowerMessage.includes("tham gia")) {
-    return {
-      message: "Để được hỗ trợ đăng ký tham gia các chương trình, tôi sẽ kết nối bạn với nhân viên tư vấn.",
-      needsAdmin: true,
-    }
-  } else {
-    return {
-      message: "Tôi cần kết nối bạn với nhân viên tư vấn để được hỗ trợ tốt nhất.",
-      needsAdmin: true,
-    }
+  }
+
+  // If no keyword matches, escalate to human
+  return {
+    message: "Tôi sẽ kết nối bạn với nhân viên tư vấn để được hỗ trợ tốt nhất.",
+    needsHuman: true,
   }
 }
 
 const PORT = process.env.PORT || 3001
-
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
-
-// Initialize default data
-async function initializeData() {
-  try {
-    // Create default admin user
-    const adminExists = await prisma.user.findFirst({
-      where: { role: "ADMIN" },
-    })
-
-    if (!adminExists) {
-      const hashedPassword = await bcrypt.hash("Admin123!", 10)
-      await prisma.user.create({
-        data: {
-          email: "admin@ttphcn-haiduong.vn",
-          password: hashedPassword,
-          name: "Quản trị viên",
-          role: "ADMIN",
-        },
-      })
-      console.log("Default admin user created")
-    }
-
-    // Create default categories
-    const categories = [
-      { name: "Đào tạo", slug: "dao-tao", description: "Các chương trình đào tạo nghề", color: "#3B82F6" },
-      { name: "Việc làm", slug: "viec-lam", description: "Thông tin việc làm và tuyển dụng", color: "#10B981" },
-      { name: "Hoạt động", slug: "hoat-dong", description: "Các hoạt động của trung tâm", color: "#F59E0B" },
-      { name: "Hỗ trợ", slug: "ho-tro", description: "Dịch vụ hỗ trợ người khiếm thị", color: "#EF4444" },
-      { name: "Tin tức", slug: "tin-tuc", description: "Tin tức và thông báo", color: "#8B5CF6" },
-    ]
-
-    for (const category of categories) {
-      await prisma.category.upsert({
-        where: { slug: category.slug },
-        update: {},
-        create: category,
-      })
-    }
-
-    // Create default tags
-    const tags = [
-      { name: "CNTT", slug: "cntt", color: "#3B82F6" },
-      { name: "Massage", slug: "massage", color: "#10B981" },
-      { name: "Thủ công", slug: "thu-cong", color: "#F59E0B" },
-      { name: "Tư vấn", slug: "tu-van", color: "#EF4444" },
-      { name: "Phục hồi", slug: "phuc-hoi", color: "#8B5CF6" },
-    ]
-
-    for (const tag of tags) {
-      await prisma.tag.upsert({
-        where: { slug: tag.slug },
-        update: {},
-        create: tag,
-      })
-    }
-
-    // Create default settings
-    const defaultSettings = [
-      {
-        key: "site_name",
-        value: "Trung tâm Phục hồi chức năng và Giáo dục nghề nghiệp cho Người mù Hải Dương",
-        type: "STRING",
-      },
-      { key: "site_description", value: "Nơi hỗ trợ, đào tạo và tạo việc làm cho người khiếm thị", type: "STRING" },
-      { key: "contact_email", value: "info@ttphcn-haiduong.vn", type: "STRING" },
-      { key: "contact_phone", value: "+84 123 456 789", type: "STRING" },
-      { key: "address", value: "Hải Dương, Việt Nam", type: "STRING" },
-      { key: "facebook_url", value: "https://facebook.com", type: "STRING" },
-      { key: "youtube_url", value: "https://youtube.com", type: "STRING" },
-      { key: "twitter_url", value: "https://twitter.com", type: "STRING" },
-      { key: "enable_registration", value: "true", type: "BOOLEAN" },
-      { key: "enable_comments", value: "true", type: "BOOLEAN" },
-      { key: "maintenance_mode", value: "false", type: "BOOLEAN" },
-      { key: "default_locale", value: "vi", type: "STRING" },
-    ]
-
-    for (const setting of defaultSettings) {
-      await prisma.setting.upsert({
-        where: { key: setting.key },
-        update: {},
-        create: setting,
-      })
-    }
-
-    console.log("Default data initialized")
-  } catch (error) {
-    console.error("Initialize data error:", error)
-  }
-}
-
-initializeData()
