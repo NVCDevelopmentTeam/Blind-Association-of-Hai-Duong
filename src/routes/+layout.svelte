@@ -1,114 +1,123 @@
 <script>
-	import '../app.css';
-	import Header from '$lib/components/Header.svelte';
-	import Footer from '$lib/components/Footer.svelte';
-	import AccessibilityControls from '$lib/components/AccessibilityControls.svelte';
-	import LiveChat from '$lib/components/LiveChat.svelte';
-	import BackToTop from '$lib/components/BackToTop.svelte';
-	import { onMount } from 'svelte';
-	import { browser } from '$app/environment';
-	import { authStore } from '$lib/stores/auth.js';
+  import '../app.css';
+  import Header from '$lib/components/Header.svelte';
+  import Footer from '$lib/components/Footer.svelte';
+  import BackToTop from '$lib/components/BackToTop.svelte';
+  import AccessibilityControls from '$lib/components/AccessibilityControls.svelte';
+  import LiveChat from '$lib/components/LiveChat.svelte';
+  import { onMount } from 'svelte';
+  import { browser } from '$app/environment';
+  import { page } from '$app/stores';
+  import '$lib/i18n';
+  import { locale, _ } from 'svelte-i18n';
+  import { derived } from 'svelte/store';
 
-	let { children } = $props();
+  let { children } = $props();
 
-	let theme = $state('light');
-	let fontSize = $state(100);
-	let highContrast = $state(false);
+  const userLang = derived(page, ($page) => {
+    return navigator.language.split('-')[0];
+  });
 
-	onMount(() => {
-		if (!browser) return;
+  const supportedLangs = ['vi', 'en'];
 
-		// Load user preferences
-		const savedTheme = localStorage.getItem('theme') || 'light';
-		const savedFontSize = localStorage.getItem('fontSize') || '100';
-		const savedHighContrast = localStorage.getItem('highContrast') === 'true';
-		
-		theme = savedTheme;
-		fontSize = parseInt(savedFontSize);
-		highContrast = savedHighContrast;
-		
-		document.documentElement.setAttribute('data-theme', theme);
-		document.body.style.fontSize = fontSize + '%';
-		if (highContrast) document.body.classList.add('high-contrast');
+  $effect(() => {
+    if (browser) {
+      if (supportedLangs.includes($userLang)) {
+        locale.set($userLang);
+      } else {
+        locale.set('vi'); // Default to Vietnamese
+      }
 
-		// Check auth status
-		const token = localStorage.getItem('token');
-		if (token) {
-			authStore.login(token);
-		}
-	});
+      // Track page views
+      const trackPageView = async () => {
+        try {
+          await fetch('http://localhost:3001/api/track-visitor', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              page: $page.url.pathname,
+              referrer: document.referrer
+            })
+          });
+        } catch (error) {
+          console.error('Error tracking page view:', error);
+        }
+      };
 
-	function updateTheme(newTheme) {
-		theme = newTheme;
-		if (browser) {
-			document.documentElement.setAttribute('data-theme', theme);
-			localStorage.setItem('theme', theme);
-		}
-	}
+      trackPageView();
+    }
+  });
 
-	function updateFontSize(newSize) {
-		fontSize = newSize;
-		if (browser) {
-			document.body.style.fontSize = fontSize + '%';
-			localStorage.setItem('fontSize', fontSize.toString());
-		}
-	}
+  const metaTitle = derived(page, ($page) => {
+    return $page.data?.title || 'Trung tâm Phục hồi chức năng Hải Dương';
+  });
 
-	function updateHighContrast(enabled) {
-		highContrast = enabled;
-		if (browser) {
-			if (enabled) {
-				document.body.classList.add('high-contrast');
-			} else {
-				document.body.classList.remove('high-contrast');
-			}
-			localStorage.setItem('highContrast', enabled.toString());
-		}
-	}
+  const metaDescription = derived(page, ($page) => {
+    return $page.data?.description || 'Trung tâm hỗ trợ phục hồi chức năng, đào tạo nghề và tạo việc làm cho người khiếm thị tại Hải Dương';
+  });
 </script>
 
-<div class="skip-links">
-	<a href="#main-content" class="skip-link">Bỏ qua phần nội dung chính</a>
-	<a href="#navigation" class="skip-link">Bỏ qua điều hướng</a>
-	<a href="#footer" class="skip-link">Bỏ qua chân trang</a>
+<svelte:head>
+  <title>{$metaTitle}</title>
+  <meta name="description" content={$metaDescription} />
+  <meta property="og:title" content={$metaTitle} />
+  <meta property="og:description" content={$metaDescription} />
+  <meta property="og:url" content={$page.url.href} />
+  <link rel="canonical" href={$page.url.href} />
+</svelte:head>
+
+<div class="min-h-screen flex flex-col">
+  <!-- Skip to main content link for screen readers -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50">
+    Chuyển đến nội dung chính
+  </a>
+
+  <!-- Accessibility Controls -->
+  <AccessibilityControls />
+
+  <!-- Header -->
+  <Header />
+
+  <!-- Main Content -->
+  <main id="main-content" class="flex-1" role="main">
+    {@html children()}
+  </main>
+
+  <!-- Footer -->
+  <Footer />
+
+  <!-- Back to Top Button -->
+  <BackToTop />
+
+  <!-- Live Chat -->
+  <LiveChat />
 </div>
 
-<AccessibilityControls 
-	{theme} 
-	{fontSize} 
-	{highContrast}
-	{updateTheme}
-	{updateFontSize}
-	{updateHighContrast}
-/>
-
-<Header />
-
-<main id="main-content" class="flex-1">
-	{@render children()}
-</main>
-
-<Footer />
-<LiveChat />
-<BackToTop />
-
-<style>
-	.skip-links {
-		position: absolute;
-		top: -40px;
-		left: 0;
-		z-index: 100;
-	}
-
-	.skip-link {
-		padding: 8px;
-		background: var(--background-color);
-		color: var(--link-color);
-		transition: top 0.2s;
-		text-decoration: none;
-	}
-
-	.skip-link:focus {
-		top: 0;
-	}
-</style>
+<!-- Structured Data for SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Trung tâm Phục hồi chức năng và Giáo dục nghề nghiệp cho Người mù Hải Dương",
+  "url": "https://ttphcn-haiduong.vn",
+  "logo": "https://ttphcn-haiduong.vn/logo.png",
+  "description": "Trung tâm hỗ trợ phục hồi chức năng, đào tạo nghề và tạo việc làm cho người khiếm thị tại Hải Dương",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Hải Dương",
+    "addressCountry": "VN"
+  },
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "telephone": "+84-123-456-789",
+    "contactType": "customer service",
+    "email": "info@ttphcn-haiduong.vn"
+  },
+  "sameAs": [
+    "https://facebook.com/ttphcn-haiduong",
+    "https://youtube.com/ttphcn-haiduong"
+  ]
+}
+</script>

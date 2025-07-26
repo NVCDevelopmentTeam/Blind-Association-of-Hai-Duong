@@ -1,153 +1,204 @@
 <script>
-	import { page } from '$app/stores';
-	import { authStore } from '$lib/stores/auth.js';
-	import SearchBox from './SearchBox.svelte';
-	import LoginModal from './LoginModal.svelte';
+  import { page } from '$app/stores';
+  import { onMount } from 'svelte';
+  import { browser } from '$app/environment';
+  import { locale, _ } from 'svelte-i18n';
+  import SearchBox from './SearchBox.svelte';
+  import TextToSpeech from './TextToSpeech.svelte';
 
-	let showMobileMenu = $state(false);
-	let showLoginModal = $state(false);
-	let currentAuth = $state({ isAuthenticated: false, user: null });
+  let mobileMenuOpen = $state(false);
+  let currentLocale = $state('vi');
+  let darkMode = $state(false);
 
-	const navItems = [
-		{ href: '/', label: 'Trang chủ' },
-		{ href: '/gioi-thieu', label: 'Giới thiệu' },
-		{ href: '/dao-tao', label: 'Đào tạo' },
-		{ href: '/viec-lam', label: 'Việc làm' },
-		{ href: '/hoat-dong', label: 'Hoạt động' },
-		{ href: '/tin-tuc', label: 'Tin tức' },
-		{ href: '/lien-he', label: 'Liên hệ' }
-	];
+  const navigation = [
+    { name: 'Trang chủ', href: '/', icon: 'fa-home' },
+    { name: 'Giới thiệu', href: '/gioi-thieu', icon: 'fa-info-circle' },
+    { name: 'Đào tạo', href: '/dao-tao', icon: 'fa-graduation-cap' },
+    { name: 'Việc làm', href: '/viec-lam', icon: 'fa-briefcase' },
+    { name: 'Hoạt động', href: '/hoat-dong', icon: 'fa-calendar-alt' },
+    { name: 'Tin tức', href: '/tin-tuc', icon: 'fa-newspaper' },
+    { name: 'Liên hệ', href: '/lien-he', icon: 'fa-phone' }
+  ];
 
-	// Subscribe to auth store
-	$effect(() => {
-		const unsubscribe = authStore.subscribe(value => {
-			currentAuth = value;
-		});
-		return unsubscribe;
-	});
+  onMount(() => {
+    if (browser) {
+      // Load saved preferences
+      const savedLocale = localStorage.getItem('locale') || 'vi';
+      const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+      
+      currentLocale = savedLocale;
+      darkMode = savedDarkMode;
+      
+      locale.set(savedLocale);
+      
+      if (savedDarkMode) {
+        document.documentElement.classList.add('dark');
+      }
+    }
+  });
 
-	function toggleMobileMenu() {
-		showMobileMenu = !showMobileMenu;
-	}
+  function toggleMobileMenu() {
+    mobileMenuOpen = !mobileMenuOpen;
+  }
 
-	function handleLogin() {
-		if (currentAuth.isAuthenticated) {
-			authStore.logout();
-		} else {
-			showLoginModal = true;
-		}
-	}
+  function changeLanguage(newLocale) {
+    currentLocale = newLocale;
+    locale.set(newLocale);
+    if (browser) {
+      localStorage.setItem('locale', newLocale);
+    }
+  }
 
-	function closeLoginModal() {
-		showLoginModal = false;
-	}
+  function toggleDarkMode() {
+    darkMode = !darkMode;
+    if (browser) {
+      localStorage.setItem('darkMode', darkMode.toString());
+      if (darkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  }
+
+  function isActive(href) {
+    return $page.url.pathname === href || $page.url.pathname.startsWith(href + '/');
+  }
 </script>
 
-<header class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-40">
-	<nav id="navigation" class="content-wrapper flex justify-between items-center py-4" aria-label="Điều hướng chính">
-		<div class="flex-1 flex justify-between items-center">
-			<div class="logo flex items-center gap-4">
-				<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 200 200" class="logo-svg">
-					<title>Logo Trung tâm Phục hồi chức năng và Giáo dục nghề nghiệp cho Người mù Hải Dương</title>
-					<circle cx="100" cy="100" r="90" fill="#1d4ed8"/>
-					<circle cx="100" cy="100" r="70" fill="white"/>
-					<path d="M100 40 C60 40 40 70 40 100 C40 130 60 160 100 160 C140 160 160 130 160 100 C160 70 140 40 100 40" fill="#1d4ed8"/>
-					<circle cx="100" cy="100" r="30" fill="white"/>
-					<text x="100" y="140" text-anchor="middle" fill="#1d4ed8" font-size="24" font-weight="bold">TTPHCN</text>
-				</svg>
-				<div class="hidden lg:block">
-					<h1 class="text-xl font-bold text-gray-800 dark:text-white">
-						Trung tâm Phục hồi chức năng và Giáo dục nghề nghiệp cho Người mù Hải Dương
-					</h1>
-				</div>
-			</div>
+<header class="bg-white dark:bg-gray-900 shadow-lg sticky top-0 z-40" aria-labelledby="header-label">
+  <!-- Top Bar -->
+  <div class="bg-blue-600 dark:bg-blue-800 text-white py-2">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center text-sm">
+        <div class="flex items-center space-x-4">
+          <a href="tel:+84123456789" class="hover:text-blue-200 transition-colors">
+            <i class="fas fa-phone mr-1" aria-hidden="true"></i>
+            +84 123 456 789
+          </a>
+          <a href="mailto:info@ttphcn-haiduong.vn" class="hover:text-blue-200 transition-colors">
+            <i class="fas fa-envelope mr-1" aria-hidden="true"></i>
+            info@ttphcn-haiduong.vn
+          </a>
+        </div>
+        
+        <div class="flex items-center space-x-4">
+          <!-- Language Switcher -->
+          <div class="relative group">
+            <button 
+              class="flex items-center space-x-1 hover:text-blue-200 transition-colors"
+              aria-label="Chọn ngôn ngữ"
+            >
+              <i class="fas fa-globe" aria-hidden="true"></i>
+              <span>{currentLocale.toUpperCase()}</span>
+            </button>
+            <div class="absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+              <button 
+                onclick={() => changeLanguage('vi')}
+                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
+              >
+                Tiếng Việt
+              </button>
+              <button 
+                onclick={() => changeLanguage('en')}
+                class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left"
+              >
+                English
+              </button>
+            </div>
+          </div>
 
-			<div class="hidden lg:flex items-center gap-4">
-				<SearchBox />
-			</div>
-			
-			<div class="hidden lg:flex gap-6 items-center" role="menubar">
-				{#each navItems as item}
-					<a 
-						href={item.href} 
-						class="nav-link hover:text-blue-600 transition-colors"
-						class:active={$page.url.pathname === item.href}
-						role="menuitem"
-					>
-						{item.label}
-					</a>
-				{/each}
-				
-				<button 
-					onclick={handleLogin}
-					class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-				>
-					{currentAuth.isAuthenticated ? 'Đăng xuất' : 'Đăng nhập'}
-				</button>
+          <!-- Dark Mode Toggle -->
+          <button 
+            onclick={toggleDarkMode}
+            class="hover:text-blue-200 transition-colors"
+            aria-label={darkMode ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'}
+          >
+            <i class="fas {darkMode ? 'fa-sun' : 'fa-moon'}" aria-hidden="true"></i>
+          </button>
 
-				{#if currentAuth.isAuthenticated && currentAuth.user?.role === 'admin'}
-					<a href="/admin" class="text-blue-600 hover:text-blue-800">
-						<i class="fas fa-cog"></i> Admin
-					</a>
-				{/if}
-			</div>
+          <!-- Social Links -->
+          <div class="flex items-center space-x-2">
+            <a href="https://facebook.com" class="hover:text-blue-200 transition-colors" aria-label="Facebook">
+              <i class="fab fa-facebook-f" aria-hidden="true"></i>
+            </a>
+            <a href="https://youtube.com" class="hover:text-blue-200 transition-colors" aria-label="YouTube">
+              <i class="fab fa-youtube" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-			<!-- Mobile menu button -->
-			<button 
-				class="lg:hidden p-2"
-				onclick={toggleMobileMenu}
-				aria-expanded={showMobileMenu}
-				aria-label="Toggle mobile menu"
-			>
-				<i class="fas fa-bars text-xl"></i>
-			</button>
-		</div>
-	</nav>
+  <!-- Main Header -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center py-4">
+      <!-- Logo -->
+      <div class="flex items-center">
+        <a href="/" class="flex items-center space-x-3">
+          <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+            <i class="fas fa-eye text-white text-xl" aria-hidden="true"></i>
+          </div>
+          <div class="hidden sm:block">
+            <h1 class="text-xl font-bold text-gray-900 dark:text-white">
+              TTPHCN Hải Dương
+            </h1>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Trung tâm Phục hồi chức năng
+            </p>
+          </div>
+        </a>
+      </div>
 
-	<!-- Mobile menu -->
-	{#if showMobileMenu}
-		<div class="lg:hidden bg-white dark:bg-gray-800 border-t">
-			<div class="content-wrapper py-4">
-				<SearchBox />
-				<div class="mt-4 space-y-2">
-					{#each navItems as item}
-						<a 
-							href={item.href} 
-							class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-							onclick={() => showMobileMenu = false}
-						>
-							{item.label}
-						</a>
-					{/each}
-					<button 
-						onclick={handleLogin}
-						class="w-full text-left py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700"
-					>
-						{currentAuth.isAuthenticated ? 'Đăng xuất' : 'Đăng nhập'}
-					</button>
-				</div>
-			</div>
-		</div>
-	{/if}
+      <!-- Desktop Navigation -->
+      <nav class="hidden lg:flex items-center space-x-8" aria-label="Điều hướng chính">
+        {#each navigation as item}
+          <a 
+            href={item.href}
+            class="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors {isActive(item.href) ? 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/20' : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800'}"
+            aria-current={isActive(item.href) ? 'page' : undefined}
+          >
+            <i class="fas {item.icon}" aria-hidden="true"></i>
+            <span>{item.name}</span>
+          </a>
+        {/each}
+      </nav>
+
+      <!-- Search and Utilities -->
+      <div class="flex items-center space-x-4">
+        <SearchBox />
+        <TextToSpeech />
+        
+        <!-- Mobile menu button -->
+        <button 
+          onclick={toggleMobileMenu}
+          class="lg:hidden p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          aria-expanded={mobileMenuOpen}
+          aria-label="Mở menu điều hướng"
+        >
+          <i class="fas {mobileMenuOpen ? 'fa-times' : 'fa-bars'}" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Navigation -->
+  {#if mobileMenuOpen}
+    <div class="lg:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+      <nav class="px-4 py-4 space-y-2" aria-label="Điều hướng di động">
+        {#each navigation as item}
+          <a 
+            href={item.href}
+            onclick={() => mobileMenuOpen = false}
+            class="flex items-center space-x-3 px-3 py-2 rounded-md text-base font-medium transition-colors {isActive(item.href) ? 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/20' : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800'}"
+            aria-current={isActive(item.href) ? 'page' : undefined}
+          >
+            <i class="fas {item.icon}" aria-hidden="true"></i>
+            <span>{item.name}</span>
+          </a>
+        {/each}
+      </nav>
+    </div>
+  {/if}
 </header>
-
-{#if showLoginModal}
-	<LoginModal onClose={closeLoginModal} />
-{/if}
-
-<style>
-	.content-wrapper {
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 0 1rem;
-	}
-
-	.nav-link.active {
-		color: #1d4ed8;
-		font-weight: 600;
-	}
-
-	.logo-svg {
-		flex-shrink: 0;
-	}
-</style>

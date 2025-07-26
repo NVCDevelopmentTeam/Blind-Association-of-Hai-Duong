@@ -1,58 +1,170 @@
-<div class="banner relative w-full h-[500px] bg-gradient-to-r from-blue-800 to-blue-600 overflow-hidden">
-	<div class="absolute inset-0 opacity-20">
-		<svg xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
-			<defs>
-				<pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
-					<circle cx="10" cy="10" r="2" fill="white"/>
-				</pattern>
-			</defs>
-			<rect width="100%" height="100%" fill="url(#dots)"/>
-		</svg>
-	</div>
-	
-	<div class="content-wrapper h-full flex items-center relative z-10">
-		<div class="text-white max-w-2xl">
-			<h1 class="text-4xl font-bold mb-6">
-				Trung tâm Phục hồi chức năng và Giáo dục nghề nghiệp cho Người mù Hải Dương
-			</h1>
-			<p class="text-xl mb-4 opacity-90">Sứ mệnh của chúng tôi:</p>
-			<ul class="list-disc list-inside mb-6 space-y-2">
-				<li>Phục hồi chức năng toàn diện cho người khiếm thị</li>
-				<li>Đào tạo nghề và kỹ năng sống độc lập</li>
-				<li>Tạo cơ hội việc làm và hòa nhập cộng đồng</li>
-				<li>Nâng cao chất lượng cuộc sống người khiếm thị</li>
-			</ul>
-			<div class="flex gap-4">
-				<a 
-					href="/gioi-thieu" 
-					class="inline-block px-6 py-3 bg-white text-blue-600 rounded-lg hover:bg-gray-100 transition-colors"
-				>
-					Tìm hiểu thêm
-				</a>
-				<a 
-					href="/lien-he" 
-					class="inline-block px-6 py-3 bg-transparent border-2 border-white text-white rounded-lg hover:bg-white hover:text-blue-600 transition-colors"
-				>
-					Liên hệ ngay
-				</a>
-			</div>
-		</div>
-	</div>
-	
-	<!-- Decorative elements -->
-	<div class="absolute bottom-0 right-0 w-1/3 h-full opacity-20">
-		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full h-full">
-			<circle cx="50" cy="50" r="40" fill="none" stroke="white" stroke-width="0.5"/>
-			<circle cx="50" cy="50" r="30" fill="none" stroke="white" stroke-width="0.5"/>
-			<circle cx="50" cy="50" r="20" fill="none" stroke="white" stroke-width="0.5"/>
-		</svg>
-	</div>
-</div>
+<script>
+  import { onMount } from 'svelte';
+  import { browser } from '$app/environment';
 
-<style>
-	.content-wrapper {
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 0 1rem;
-	}
-</style>
+  let currentSlide = $state(0);
+  let autoplayInterval;
+
+  const slides = [
+    {
+      id: 1,
+      title: 'Trung tâm Phục hồi chức năng Hải Dương',
+      subtitle: 'Nơi khởi đầu cho tương lai tươi sáng',
+      description: 'Chúng tôi cam kết mang đến những dịch vụ phục hồi chức năng và đào tạo nghề chất lượng cao cho người khiếm thị',
+      image: '/placeholder.svg?height=600&width=1200',
+      cta: {
+        primary: { text: 'Tìm hiểu thêm', href: '/gioi-thieu' },
+        secondary: { text: 'Liên hệ ngay', href: '/lien-he' }
+      }
+    },
+    {
+      id: 2,
+      title: 'Đào tạo nghề chuyên nghiệp',
+      subtitle: 'Kỹ năng thực tế - Cơ hội việc làm',
+      description: 'Các khóa đào tạo CNTT, massage, thủ công mỹ nghệ được thiết kế phù hợp với người khiếm thị',
+      image: '/placeholder.svg?height=600&width=1200',
+      cta: {
+        primary: { text: 'Xem khóa học', href: '/dao-tao' },
+        secondary: { text: 'Đăng ký ngay', href: '/lien-he' }
+      }
+    },
+    {
+      id: 3,
+      title: 'Hỗ trợ việc làm',
+      subtitle: 'Kết nối cơ hội - Xây dựng tương lai',
+      description: 'Chương trình hỗ trợ tìm việc làm và tạo sinh kế bền vững cho người khiếm thị',
+      image: '/placeholder.svg?height=600&width=1200',
+      cta: {
+        primary: { text: 'Tìm việc làm', href: '/viec-lam' },
+        secondary: { text: 'Hỗ trợ tư vấn', href: '/lien-he' }
+      }
+    }
+  ];
+
+  onMount(() => {
+    if (browser) {
+      // Auto-play slides
+      autoplayInterval = setInterval(() => {
+        currentSlide = (currentSlide + 1) % slides.length;
+      }, 5000);
+
+      return () => {
+        if (autoplayInterval) {
+          clearInterval(autoplayInterval);
+        }
+      };
+    }
+  });
+
+  function goToSlide(index) {
+    currentSlide = index;
+    // Reset autoplay
+    if (autoplayInterval) {
+      clearInterval(autoplayInterval);
+      autoplayInterval = setInterval(() => {
+        currentSlide = (currentSlide + 1) % slides.length;
+      }, 5000);
+    }
+  }
+
+  function nextSlide() {
+    currentSlide = (currentSlide + 1) % slides.length;
+  }
+
+  function prevSlide() {
+    currentSlide = currentSlide === 0 ? slides.length - 1 : currentSlide - 1;
+  }
+</script>
+
+<section class="relative bg-gray-900 overflow-hidden" aria-label="Hero banner">
+  <!-- Background Images -->
+  {#each slides as slide, index}
+    <div 
+      class="absolute inset-0 transition-opacity duration-1000 {index === currentSlide ? 'opacity-100' : 'opacity-0'}"
+      aria-hidden={index !== currentSlide}
+    >
+      <img 
+        src={slide.image || "/placeholder.svg"} 
+        alt={slide.title}
+        class="w-full h-full object-cover"
+        loading={index === 0 ? 'eager' : 'lazy'}
+      />
+      <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+    </div>
+  {/each}
+
+  <!-- Content -->
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
+    <div class="text-center lg:text-left lg:max-w-2xl">
+      {#each slides as slide, index}
+        <div 
+          class="transition-all duration-500 {index === currentSlide ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform translate-y-4 absolute'}"
+          aria-hidden={index !== currentSlide}
+        >
+          <h1 class="text-4xl lg:text-6xl font-bold text-white mb-4 leading-tight">
+            {slide.title}
+          </h1>
+          <p class="text-xl lg:text-2xl text-blue-200 mb-6 font-medium">
+            {slide.subtitle}
+          </p>
+          <p class="text-lg text-gray-300 mb-8 leading-relaxed">
+            {slide.description}
+          </p>
+          
+          <!-- Call to Action Buttons -->
+          <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+            <a 
+              href={slide.cta.primary.href}
+              class="inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+            >
+              {slide.cta.primary.text}
+              <i class="fas fa-arrow-right ml-2" aria-hidden="true"></i>
+            </a>
+            <a 
+              href={slide.cta.secondary.href}
+              class="inline-flex items-center justify-center px-8 py-4 border border-white text-base font-medium rounded-md text-white hover:bg-white hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-900"
+            >
+              {slide.cta.secondary.text}
+              <i class="fas fa-phone ml-2" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+      {/each}
+    </div>
+  </div>
+
+  <!-- Navigation Controls -->
+  <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+    <div class="flex space-x-2">
+      {#each slides as _, index}
+        <button 
+          onclick={() => goToSlide(index)}
+          class="w-3 h-3 rounded-full transition-colors {index === currentSlide ? 'bg-white' : 'bg-white bg-opacity-50'}"
+          aria-label="Chuyển đến slide {index + 1}"
+        ></button>
+      {/each}
+    </div>
+  </div>
+
+  <!-- Previous/Next Buttons -->
+  <button 
+    onclick={prevSlide}
+    class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-75 transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+    aria-label="Slide trước"
+  >
+    <i class="fas fa-chevron-left" aria-hidden="true"></i>
+  </button>
+  
+  <button 
+    onclick={nextSlide}
+    class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-75 transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+    aria-label="Slide tiếp theo"
+  >
+    <i class="fas fa-chevron-right" aria-hidden="true"></i>
+  </button>
+
+  <!-- Accessibility: Screen reader content -->
+  <div class="sr-only">
+    <p>Đang hiển thị slide {currentSlide + 1} trong tổng số {slides.length} slides</p>
+  </div>
+</section>
