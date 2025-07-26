@@ -10,6 +10,10 @@ function createAuthStore() {
 
   return {
     subscribe,
+    /**
+     * @param {any} userData
+     * @param {any} token
+     */
     login: (userData, token) => {
       if (browser) {
         localStorage.setItem("admin_token", token)
@@ -55,7 +59,7 @@ function createAuthStore() {
           set({
             isAuthenticated: true,
             user: userData,
-            token: token,
+            token,
           })
         } else {
           // Token is invalid, clear storage

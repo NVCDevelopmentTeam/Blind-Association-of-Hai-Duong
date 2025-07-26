@@ -138,8 +138,7 @@
         placeholder="Tìm kiếm... (Ctrl+K)"
         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
         aria-label="Tìm kiếm"
-        autocomplete="off"
-      />
+        autocomplete="off" />
       <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
         {#if $loading}
           <div class="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-blue-600"></div>

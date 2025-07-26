@@ -29,6 +29,9 @@
     showControls = !showControls;
   }
 
+  /**
+   * @param {number} delta
+   */
   function changeFontSize(delta) {
     fontSize = Math.max(12, Math.min(24, fontSize + delta));
     applySettings();
@@ -149,7 +152,6 @@
         <input 
           type="checkbox" 
           bind:checked={highContrast}
-          on:change={toggleHighContrast}
           class="sr-only"
         />
         <div class="relative">
@@ -168,7 +170,6 @@
         <input 
           type="checkbox" 
           bind:checked={reducedMotion}
-          on:change={toggleReducedMotion}
           class="sr-only"
         />
         <div class="relative">

@@ -1,3 +1,7 @@
+/**
+ * @param {string | number | Date} dateString
+ * @param {string} [locale]
+ */
 export function formatDate(dateString, locale = "vi-VN") {
   const date = new Date(dateString)
 
@@ -10,6 +14,10 @@ export function formatDate(dateString, locale = "vi-VN") {
   }).format(date)
 }
 
+/**
+ * @param {string | number | Date} dateString
+ * @param {string} [locale]
+ */
 export function formatRelativeTime(dateString, locale = "vi-VN") {
   const date = new Date(dateString)
   const now = new Date()
@@ -32,6 +40,9 @@ export function formatRelativeTime(dateString, locale = "vi-VN") {
   }
 }
 
+/**
+ * @param {string | number | Date} dateString
+ */
 export function isToday(dateString) {
   const date = new Date(dateString)
   const today = new Date()
@@ -39,6 +50,9 @@ export function isToday(dateString) {
   return date.toDateString() === today.toDateString()
 }
 
+/**
+ * @param {string | number | Date} dateString
+ */
 export function isThisWeek(dateString) {
   const date = new Date(dateString)
   const today = new Date()
