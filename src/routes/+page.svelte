@@ -13,10 +13,10 @@
   onMount(async () => {
     if (browser) {
       try {
-        const response = await fetch('http://localhost:3001/api/posts?limit=6&status=PUBLISHED');
+        const response = await fetch('/api/posts?limit=6&status=PUBLISHED');
         if (response.ok) {
           const data = await response.json();
-          featuredPosts = data.posts;
+          featuredPosts = data.posts || [];
         }
       } catch (error) {
         console.error('Error fetching posts:', error);

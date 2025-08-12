@@ -37,14 +37,14 @@
       // Track page views
       const trackPageView = async () => {
         try {
-          await fetch('http://localhost:3001/api/track-visitor', {
+          await fetch('/api/track-visitor', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
               page: $page.url.pathname,
-              referrer: document.referrer
+              referrer: document.referrer || ''
             })
           });
         } catch (error) {
@@ -68,7 +68,7 @@
 
 <div class="min-h-screen flex flex-col">
   <!-- Skip to main content link for screen readers -->
-  <a href="#main-content" class="skip-link">
+  <a href="#main-content" class="skip-link sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-primary-600 text-white p-2 z-50">
     Chuyển đến nội dung chính
   </a>
 
@@ -80,7 +80,7 @@
 
   <!-- Main Content -->
   <main id="main-content" class="flex-1" role="main">
-    {children}
+    {@html children()}
   </main>
 
   <!-- Footer -->

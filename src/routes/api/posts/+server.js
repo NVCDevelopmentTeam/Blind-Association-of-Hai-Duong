@@ -73,44 +73,60 @@ const mockPosts = [
 ]
 
 export async function GET({ url }) {
-  const limit = Number.parseInt(url.searchParams.get("limit") || "10")
-  const status = url.searchParams.get("status") || "PUBLISHED"
-  const featured = url.searchParams.get("featured") === "true"
-  const category = url.searchParams.get("category")
-  const search = url.searchParams.get("search")
-  const page = Number.parseInt(url.searchParams.get("page") || "1")
+  try {
+    const limit = Number.parseInt(url.searchParams.get("limit") || "10")
+    const status = url.searchParams.get("status") || "PUBLISHED"
+    const featured = url.searchParams.get("featured") === "true"
+    const category = url.searchParams.get("category")
+    const search = url.searchParams.get("search")
+    const page = Number.parseInt(url.searchParams.get("page") || "1")
 
-  let filteredPosts = mockPosts.filter((post) => post.status === status)
+    let filteredPosts = mockPosts.filter((post) => post.status === status)
 
-  if (featured) {
-    filteredPosts = filteredPosts.filter((post) => post.featured)
-  }
+    if (featured) {
+      filteredPosts = filteredPosts.filter((post) => post.featured)
+    }
 
-  if (category) {
-    filteredPosts = filteredPosts.filter((post) => post.categories.some((cat) => cat.slug === category))
-  }
+    if (category) {
+      filteredPosts = filteredPosts.filter((post) => post.categories.some((cat) => cat.slug === category))
+    }
 
-  if (search) {
-    const searchLower = search.toLowerCase()
-    filteredPosts = filteredPosts.filter(
-      (post) =>
-        post.title.toLowerCase().includes(searchLower) ||
-        post.excerpt.toLowerCase().includes(searchLower) ||
-        post.content.toLowerCase().includes(searchLower),
+    if (search) {
+      const searchLower = search.toLowerCase()
+      filteredPosts = filteredPosts.filter(
+        (post) =>
+          post.title.toLowerCase().includes(searchLower) ||
+          post.excerpt.toLowerCase().includes(searchLower) ||
+          post.content.toLowerCase().includes(searchLower),
+      )
+    }
+
+    const startIndex = (page - 1) * limit
+    const endIndex = startIndex + limit
+    const paginatedPosts = filteredPosts.slice(startIndex, endIndex)
+
+    return json({
+      success: true,
+      posts: paginatedPosts,
+      pagination: {
+        page,
+        limit,
+        total: filteredPosts.length,
+        pages: Math.ceil(filteredPosts.length / limit),
+        hasNext: endIndex < filteredPosts.length,
+        hasPrev: page > 1,
+      },
+    })
+  } catch (error) {
+    console.error("Posts API error:", error)
+    return json(
+      {
+        success: false,
+        error: "Failed to fetch posts",
+        posts: [],
+        pagination: { page: 1, limit: 10, total: 0, pages: 0, hasNext: false, hasPrev: false },
+      },
+      { status: 500 },
     )
   }
-
-  const startIndex = (page - 1) * limit
-  const endIndex = startIndex + limit
-  const paginatedPosts = filteredPosts.slice(startIndex, endIndex)
-
-  return json({
-    posts: paginatedPosts,
-    pagination: {
-      page,
-      limit,
-      total: filteredPosts.length,
-      pages: Math.ceil(filteredPosts.length / limit),
-    },
-  })
 }
