@@ -14,6 +14,9 @@ model User {
   password  String
   role      Role     @default(USER)
   avatar    String?
+  isVerified Boolean @default(false)
+  otpCode   String?
+  otpExpiry DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -168,10 +171,136 @@ model Setting {
   @@map("settings")
 }
 
+model ContactForm {
+  id          String @id @default(cuid())
+  name        String
+  description String?
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  fields      ContactFormField[]
+  submissions ContactFormSubmission[]
+
+  @@map("contact_forms")
+}
+
+model ContactFormField {
+  id          String @id @default(cuid())
+  formId      String
+  form        ContactForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  
+  label       String
+  name        String
+  type        FieldType
+  placeholder String?
+  isRequired  Boolean @default(false)
+  options     String? // JSON string for select/radio options
+  validation  String? // JSON string for validation rules
+  order       Int @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("contact_form_fields")
+}
+
+model ContactFormSubmission {
+  id        String @id @default(cuid())
+  formId    String
+  form      ContactForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  
+  data      String // JSON string of form data
+  ip        String?
+  userAgent String?
+  isRead    Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("contact_form_submissions")
+}
+
+model WebsiteSetting {
+  id          String @id @default(cuid())
+  category    String // general, theme, seo, social, etc.
+  key         String
+  value       String
+  type        String @default("string") // string, number, boolean, json
+  description String?
+  isPublic    Boolean @default(false) // can be accessed by frontend
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([category, key])
+  @@map("website_settings")
+}
+
+model Newsletter {
+  id        String @id @default(cuid())
+  email     String @unique
+  name      String?
+  isActive  Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("newsletters")
+}
+
+model Menu {
+  id        String @id @default(cuid())
+  name      String
+  location  String // header, footer, sidebar
+  isActive  Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items     MenuItem[]
+
+  @@map("menus")
+}
+
+model MenuItem {
+  id        String @id @default(cuid())
+  menuId    String
+  menu      Menu @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  
+  label     String
+  url       String
+  target    String @default("_self")
+  icon      String?
+  order     Int @default(0)
+  
+  parentId  String?
+  parent    MenuItem? @relation("MenuItemChildren", fields: [parentId], references: [id])
+  children  MenuItem[] @relation("MenuItemChildren")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("menu_items")
+}
+
+model MediaFile {
+  id          String @id @default(cuid())
+  filename    String
+  originalName String
+  mimeType    String
+  size        Int
+  path        String
+  url         String
+  alt         String?
+  caption     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("media_files")
+}
+
 enum Role {
   USER
   ADMIN
   MODERATOR
+  EDITOR
 }
 
 enum PostStatus {
@@ -191,4 +320,17 @@ enum MessageType {
   IMAGE
   FILE
   EMOJI
+}
+
+enum FieldType {
+  TEXT
+  EMAIL
+  PHONE
+  TEXTAREA
+  SELECT
+  RADIO
+  CHECKBOX
+  FILE
+  DATE
+  NUMBER
 }

@@ -1,0 +1,62 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "services": "Services",
+    "training": "Training",
+    "jobs": "Jobs",
+    "news": "News",
+    "contact": "Contact",
+    "accessibility": "Accessibility"
+  },
+  "home": {
+    "hero_title": "Hai Duong Rehabilitation and Vocational Education Center for the Blind",
+    "hero_subtitle": "Supporting visually impaired individuals to integrate into the community, develop skills and create job opportunities",
+    "featured_news": "Featured News",
+    "latest_news": "Latest News",
+    "our_services": "Our Services",
+    "training_programs": "Training Programs",
+    "job_opportunities": "Job Opportunities",
+    "support_services": "Support Services"
+  },
+  "accessibility": {
+    "skip_to_content": "Skip to main content",
+    "skip_to_navigation": "Skip to navigation",
+    "high_contrast": "High contrast mode",
+    "large_text": "Large text",
+    "screen_reader": "Screen reader",
+    "keyboard_navigation": "Keyboard navigation",
+    "voice_search": "Voice search",
+    "text_to_speech": "Text to speech"
+  },
+  "common": {
+    "read_more": "Read more",
+    "view_all": "View all",
+    "search": "Search",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "close": "Close",
+    "open": "Open",
+    "menu": "Menu",
+    "share": "Share",
+    "copy_link": "Copy link",
+    "print": "Print",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address"
+  },
+  "chat": {
+    "start_chat": "Start chat",
+    "type_message": "Type a message...",
+    "send": "Send",
+    "connecting": "Connecting...",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "new_message": "You have a new message",
+    "admin_joined": "Support staff has joined the chat",
+    "video_call": "Video call",
+    "voice_call": "Voice call",
+    "send_file": "Send file",
+    "emoji": "Emoji"
+  }
+}

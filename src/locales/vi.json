@@ -1,0 +1,62 @@
+{
+  "nav": {
+    "home": "Trang chủ",
+    "about": "Giới thiệu",
+    "services": "Dịch vụ",
+    "training": "Đào tạo",
+    "jobs": "Việc làm",
+    "news": "Tin tức",
+    "contact": "Liên hệ",
+    "accessibility": "Hỗ trợ tiếp cận"
+  },
+  "home": {
+    "hero_title": "Trung tâm Phục hồi chức năng và Giáo dục nghề nghiệp cho Người mù Hải Dương",
+    "hero_subtitle": "Hỗ trợ người khiếm thị hòa nhập cộng đồng, phát triển kỹ năng và tạo cơ hội việc làm",
+    "featured_news": "Tin nổi bật",
+    "latest_news": "Tin tức mới nhất",
+    "our_services": "Dịch vụ của chúng tôi",
+    "training_programs": "Chương trình đào tạo",
+    "job_opportunities": "Cơ hội việc làm",
+    "support_services": "Dịch vụ hỗ trợ"
+  },
+  "accessibility": {
+    "skip_to_content": "Bỏ qua đến nội dung chính",
+    "skip_to_navigation": "Bỏ qua đến điều hướng",
+    "high_contrast": "Chế độ tương phản cao",
+    "large_text": "Chữ to",
+    "screen_reader": "Đọc màn hình",
+    "keyboard_navigation": "Điều hướng bằng bàn phím",
+    "voice_search": "Tìm kiếm bằng giọng nói",
+    "text_to_speech": "Đọc văn bản"
+  },
+  "common": {
+    "read_more": "Đọc thêm",
+    "view_all": "Xem tất cả",
+    "search": "Tìm kiếm",
+    "loading": "Đang tải...",
+    "error": "Có lỗi xảy ra",
+    "close": "Đóng",
+    "open": "Mở",
+    "menu": "Menu",
+    "share": "Chia sẻ",
+    "copy_link": "Sao chép liên kết",
+    "print": "In",
+    "email": "Email",
+    "phone": "Điện thoại",
+    "address": "Địa chỉ"
+  },
+  "chat": {
+    "start_chat": "Bắt đầu trò chuyện",
+    "type_message": "Nhập tin nhắn...",
+    "send": "Gửi",
+    "connecting": "Đang kết nối...",
+    "connected": "Đã kết nối",
+    "disconnected": "Mất kết nối",
+    "new_message": "Bạn có tin nhắn mới",
+    "admin_joined": "Nhân viên tư vấn đã tham gia cuộc trò chuyện",
+    "video_call": "Gọi video",
+    "voice_call": "Gọi thoại",
+    "send_file": "Gửi file",
+    "emoji": "Biểu tượng cảm xúc"
+  }
+}
