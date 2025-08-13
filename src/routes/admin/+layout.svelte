@@ -4,16 +4,16 @@
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import '../../app.css';
-	
+
 	let { children } = $props();
 	let isAuthenticated = $state(false);
 	let user = $state(null);
 	let loading = $state(true);
-	
+
 	onMount(async () => {
 		if (browser) {
 			const token = localStorage.getItem('admin_token');
-			
+
 			if (!token) {
 				if ($page.url.pathname !== '/admin/login') {
 					goto('/admin/login');
@@ -21,20 +21,20 @@
 				loading = false;
 				return;
 			}
-			
+
 			try {
 				// Verify token with server
 				const response = await fetch('/api/auth/verify', {
 					headers: {
-						'Authorization': `Bearer ${token}`
+						Authorization: `Bearer ${token}`
 					}
 				});
-				
+
 				if (response.ok) {
 					const userData = await response.json();
 					user = userData;
 					isAuthenticated = true;
-					
+
 					// Redirect to dashboard if on login page
 					if ($page.url.pathname === '/admin/login') {
 						goto('/admin/dashboard');
@@ -53,10 +53,10 @@
 				}
 			}
 		}
-		
+
 		loading = false;
 	});
-	
+
 	// Redirect /admin to /admin/login
 	$effect(() => {
 		if (browser && $page.url.pathname === '/admin') {

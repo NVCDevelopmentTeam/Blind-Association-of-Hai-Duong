@@ -1,3 +1,5 @@
+<!-- @migration-task Error while migrating Svelte code: Expected token >
+https://svelte.dev/e/expected_token -->
 <script>
   import { goto } from '$app/navigation';
   import { browser } from '$app/environment';

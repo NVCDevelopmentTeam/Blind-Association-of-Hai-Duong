@@ -6,7 +6,8 @@ const mockNews = [
 		id: 1,
 		title: 'Chương trình đào tạo kỹ năng CNTT cho người khiếm thị',
 		slug: 'chuong-trinh-dao-tao-ky-nang-cntt-cho-nguoi-khiem-thi',
-		excerpt: 'Hội Người Mù Việt Nam tổ chức khóa đào tạo về công nghệ thông tin dành riêng cho người khiếm thị...',
+		excerpt:
+			'Hội Người Mù Việt Nam tổ chức khóa đào tạo về công nghệ thông tin dành riêng cho người khiếm thị...',
 		content: 'Nội dung chi tiết về chương trình đào tạo CNTT...',
 		image: '/placeholder.svg?height=300&width=400',
 		publishedAt: '2024-03-12T10:00:00Z',
@@ -66,7 +67,8 @@ const mockNews = [
 		id: 6,
 		title: 'Hội thảo về công nghệ hỗ trợ người khiếm thị',
 		slug: 'hoi-thao-ve-cong-nghe-ho-tro-nguoi-khiem-thi',
-		excerpt: 'Hội thảo quốc tế về các công nghệ mới hỗ trợ người khiếm thị trong học tập và làm việc...',
+		excerpt:
+			'Hội thảo quốc tế về các công nghệ mới hỗ trợ người khiếm thị trong học tập và làm việc...',
 		content: 'Nội dung chi tiết về hội thảo công nghệ...',
 		image: '/placeholder.svg?height=300&width=400',
 		publishedAt: '2024-03-07T13:00:00Z',

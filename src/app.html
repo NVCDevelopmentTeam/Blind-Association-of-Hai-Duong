@@ -1,93 +1,102 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi" class="%sveltekit.theme%">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%sveltekit.assets%/favicon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#3b82f6" />
-    
-    <!-- Preconnect to external domains -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    
-    <!-- Quill Editor -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-    
-    <!-- Socket.io -->
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    
-    <!-- SEO Meta Tags -->
-    <meta name="robots" content="index, follow" />
-    <meta name="googlebot" content="index, follow" />
-    <meta name="author" content="Trung tâm PHCN Hải Dương" />
-    
-    <!-- Open Graph -->
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Trung tâm PHCN Hải Dương" />
-    <meta property="og:locale" content="vi_VN" />
-    <meta property="og:image" content="%sveltekit.assets%/og-image.jpg" />
-    
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@ttphcn_haiduong" />
-    
-    <!-- Structured Data -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "Trung tâm Phục hồi chức năng và Giáo dục nghề nghiệp cho Người mù Hải Dương",
-      "url": "https://ttphcn-haiduong.vn",
-      "logo": "%sveltekit.assets%/logo.png",
-      "description": "Trung tâm hỗ trợ phục hồi chức năng, đào tạo nghề và tạo việc làm cho người khiếm thị tại Hải Dương",
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "Hải Dương",
-        "addressCountry": "VN"
-      },
-      "contactPoint": {
-        "@type": "ContactPoint",
-        "telephone": "+84-123-456-789",
-        "contactType": "customer service",
-        "email": "info@ttphcn-haiduong.vn"
-      }
-    }
-    </script>
-    
-    %sveltekit.head%
-  </head>
-  <body data-sveltekit-preload-data="hover" class="antialiased">
-    <div style="display: contents">%sveltekit.body%</div>
-    
-    <!-- Accessibility Script -->
-    <script>
-      // High contrast mode
-      if (localStorage.getItem('high-contrast') === 'true') {
-        document.documentElement.classList.add('high-contrast');
-      }
-      
-      // Large text mode
-      if (localStorage.getItem('large-text') === 'true') {
-        document.documentElement.classList.add('large-text');
-      }
-      
-      // Screen reader announcements
-      window.announceToScreenReader = function(message) {
-        const announcement = document.createElement('div');
-        announcement.setAttribute('aria-live', 'polite');
-        announcement.setAttribute('aria-atomic', 'true');
-        announcement.className = 'sr-only';
-        announcement.textContent = message;
-        document.body.appendChild(announcement);
-        setTimeout(() => document.body.removeChild(announcement), 1000);
-      };
-    </script>
-  </body>
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="theme-color" content="#3b82f6" />
+
+		<!-- Preconnect to external domains -->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+		<!-- Fonts -->
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+
+		<!-- Font Awesome -->
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+			integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+			crossorigin="anonymous"
+			referrerpolicy="no-referrer"
+		/>
+
+		<!-- Quill Editor -->
+		<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
+		<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
+		<!-- Socket.io -->
+		<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+		<!-- SEO Meta Tags -->
+		<meta name="robots" content="index, follow" />
+		<meta name="googlebot" content="index, follow" />
+		<meta name="author" content="Trung tâm PHCN Hải Dương" />
+
+		<!-- Open Graph -->
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="Trung tâm PHCN Hải Dương" />
+		<meta property="og:locale" content="vi_VN" />
+		<meta property="og:image" content="%sveltekit.assets%/og-image.jpg" />
+
+		<!-- Twitter Card -->
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:site" content="@ttphcn_haiduong" />
+
+		<!-- Structured Data -->
+		<script type="application/ld+json">
+			{
+				"@context": "https://schema.org",
+				"@type": "Organization",
+				"name": "Trung tâm Phục hồi chức năng và Giáo dục nghề nghiệp cho Người mù Hải Dương",
+				"url": "https://ttphcn-haiduong.vn",
+				"logo": "%sveltekit.assets%/logo.png",
+				"description": "Trung tâm hỗ trợ phục hồi chức năng, đào tạo nghề và tạo việc làm cho người khiếm thị tại Hải Dương",
+				"address": {
+					"@type": "PostalAddress",
+					"addressLocality": "Hải Dương",
+					"addressCountry": "VN"
+				},
+				"contactPoint": {
+					"@type": "ContactPoint",
+					"telephone": "+84-123-456-789",
+					"contactType": "customer service",
+					"email": "info@ttphcn-haiduong.vn"
+				}
+			}
+		</script>
+
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover" class="antialiased">
+		<div style="display: contents">%sveltekit.body%</div>
+
+		<!-- Accessibility Script -->
+		<script>
+			// High contrast mode
+			if (localStorage.getItem('high-contrast') === 'true') {
+				document.documentElement.classList.add('high-contrast');
+			}
+
+			// Large text mode
+			if (localStorage.getItem('large-text') === 'true') {
+				document.documentElement.classList.add('large-text');
+			}
+
+			// Screen reader announcements
+			window.announceToScreenReader = function (message) {
+				const announcement = document.createElement('div');
+				announcement.setAttribute('aria-live', 'polite');
+				announcement.setAttribute('aria-atomic', 'true');
+				announcement.className = 'sr-only';
+				announcement.textContent = message;
+				document.body.appendChild(announcement);
+				setTimeout(() => document.body.removeChild(announcement), 1000);
+			};
+		</script>
+	</body>
 </html>

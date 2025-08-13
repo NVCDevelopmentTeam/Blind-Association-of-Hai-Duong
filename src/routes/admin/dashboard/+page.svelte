@@ -1,18 +1,18 @@
 <script>
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
-	
+
 	let stats = $state({
 		totalPosts: 0,
 		totalUsers: 0,
 		totalViews: 0,
 		totalComments: 0
 	});
-	
+
 	let recentPosts = $state([]);
 	let recentComments = $state([]);
 	let loading = $state(true);
-	
+
 	onMount(async () => {
 		if (browser) {
 			try {
@@ -23,7 +23,7 @@
 					totalViews: 1250,
 					totalComments: 89
 				};
-				
+
 				recentPosts = [
 					{
 						id: 1,
@@ -40,7 +40,7 @@
 						status: 'draft'
 					}
 				];
-				
+
 				recentComments = [
 					{
 						id: 1,
@@ -70,9 +70,7 @@
 			<i class="fas fa-tachometer-alt mr-2 text-blue-600"></i>
 			Bảng điều khiển
 		</h1>
-		<p class="text-gray-600 dark:text-gray-400">
-			Chào mừng bạn đến với hệ thống quản trị website
-		</p>
+		<p class="text-gray-600 dark:text-gray-400">Chào mừng bạn đến với hệ thống quản trị website</p>
 	</div>
 
 	{#if loading}
@@ -130,7 +128,9 @@
 					</div>
 					<div class="ml-4">
 						<p class="text-sm font-medium text-gray-600 dark:text-gray-400">Bình luận</p>
-						<p class="text-2xl font-semibold text-gray-900 dark:text-white">{stats.totalComments}</p>
+						<p class="text-2xl font-semibold text-gray-900 dark:text-white">
+							{stats.totalComments}
+						</p>
 					</div>
 				</div>
 			</div>
@@ -150,23 +150,27 @@
 					{#if recentPosts.length > 0}
 						<div class="space-y-4">
 							{#each recentPosts as post}
-								<div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+								<div
+									class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+								>
 									<div class="flex-1">
 										<h3 class="font-medium text-gray-900 dark:text-white">{post.title}</h3>
 										<p class="text-sm text-gray-600 dark:text-gray-400">
 											Bởi {post.author} • {post.date}
 										</p>
 									</div>
-									<span class="px-2 py-1 text-xs rounded-full {post.status === 'published' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'}">
+									<span
+										class="px-2 py-1 text-xs rounded-full {post.status === 'published'
+											? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+											: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'}"
+									>
 										{post.status === 'published' ? 'Đã xuất bản' : 'Bản nháp'}
 									</span>
 								</div>
 							{/each}
 						</div>
 					{:else}
-						<p class="text-gray-500 dark:text-gray-400 text-center py-8">
-							Chưa có bài viết nào
-						</p>
+						<p class="text-gray-500 dark:text-gray-400 text-center py-8">Chưa có bài viết nào</p>
 					{/if}
 				</div>
 			</div>
@@ -194,9 +198,7 @@
 							{/each}
 						</div>
 					{:else}
-						<p class="text-gray-500 dark:text-gray-400 text-center py-8">
-							Chưa có bình luận nào
-						</p>
+						<p class="text-gray-500 dark:text-gray-400 text-center py-8">Chưa có bình luận nào</p>
 					{/if}
 				</div>
 			</div>
@@ -209,23 +211,32 @@
 				Thao tác nhanh
 			</h2>
 			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-				<a href="/admin/dashboard/posts/new" class="flex items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
+				<a
+					href="/admin/dashboard/posts/new"
+					class="flex items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+				>
 					<i class="fas fa-plus text-blue-600 text-xl mr-3"></i>
 					<div>
 						<h3 class="font-medium text-gray-900 dark:text-white">Tạo bài viết mới</h3>
 						<p class="text-sm text-gray-600 dark:text-gray-400">Viết bài viết mới</p>
 					</div>
 				</a>
-				
-				<a href="/admin/dashboard/media" class="flex items-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
+
+				<a
+					href="/admin/dashboard/media"
+					class="flex items-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+				>
 					<i class="fas fa-images text-green-600 text-xl mr-3"></i>
 					<div>
 						<h3 class="font-medium text-gray-900 dark:text-white">Quản lý media</h3>
 						<p class="text-sm text-gray-600 dark:text-gray-400">Tải lên hình ảnh</p>
 					</div>
 				</a>
-				
-				<a href="/admin/dashboard/settings" class="flex items-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors">
+
+				<a
+					href="/admin/dashboard/settings"
+					class="flex items-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
+				>
 					<i class="fas fa-cog text-purple-600 text-xl mr-3"></i>
 					<div>
 						<h3 class="font-medium text-gray-900 dark:text-white">Cài đặt</h3>

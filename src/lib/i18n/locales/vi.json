@@ -1,35 +1,35 @@
 {
-  "home": {
-    "title": "Trang chủ",
-    "description": "Trung tâm hỗ trợ phục hồi chức năng, đào tạo nghề và tạo việc làm cho người khiếm thị tại Hải Dương"
-  },
-  "nav": {
-    "home": "Trang chủ",
-    "about": "Giới thiệu",
-    "training": "Đào tạo",
-    "jobs": "Việc làm",
-    "activities": "Hoạt động",
-    "news": "Tin tức",
-    "contact": "Liên hệ"
-  },
-  "hero": {
-    "title": "Trung tâm Phục hồi chức năng và Giáo dục nghề nghiệp cho Người mù Hải Dương",
-    "mission": "Sứ mệnh của chúng tôi:",
-    "mission_1": "Phục hồi chức năng toàn diện cho người khiếm thị",
-    "mission_2": "Đào tạo nghề và kỹ năng sống độc lập",
-    "mission_3": "Tạo cơ hội việc làm và hòa nhập cộng đồng",
-    "mission_4": "Nâng cao chất lượng cuộc sống người khiếm thị",
-    "learn_more": "Tìm hiểu thêm",
-    "contact_now": "Liên hệ ngay"
-  },
-  "quick_links": {
-    "rehabilitation": "Phục hồi chức năng",
-    "rehabilitation_desc": "Chương trình phục hồi chức năng toàn diện",
-    "training": "Đào tạo nghề",
-    "training_desc": "Các khóa học nghề chuyên nghiệp",
-    "jobs": "Tạo việc làm",
-    "jobs_desc": "Kết nối và tạo cơ hội việc làm",
-    "support": "Hỗ trợ hòa nhập",
-    "support_desc": "Đồng hành cùng phát triển"
-  }
+	"home": {
+		"title": "Trang chủ",
+		"description": "Trung tâm hỗ trợ phục hồi chức năng, đào tạo nghề và tạo việc làm cho người khiếm thị tại Hải Dương"
+	},
+	"nav": {
+		"home": "Trang chủ",
+		"about": "Giới thiệu",
+		"training": "Đào tạo",
+		"jobs": "Việc làm",
+		"activities": "Hoạt động",
+		"news": "Tin tức",
+		"contact": "Liên hệ"
+	},
+	"hero": {
+		"title": "Trung tâm Phục hồi chức năng và Giáo dục nghề nghiệp cho Người mù Hải Dương",
+		"mission": "Sứ mệnh của chúng tôi:",
+		"mission_1": "Phục hồi chức năng toàn diện cho người khiếm thị",
+		"mission_2": "Đào tạo nghề và kỹ năng sống độc lập",
+		"mission_3": "Tạo cơ hội việc làm và hòa nhập cộng đồng",
+		"mission_4": "Nâng cao chất lượng cuộc sống người khiếm thị",
+		"learn_more": "Tìm hiểu thêm",
+		"contact_now": "Liên hệ ngay"
+	},
+	"quick_links": {
+		"rehabilitation": "Phục hồi chức năng",
+		"rehabilitation_desc": "Chương trình phục hồi chức năng toàn diện",
+		"training": "Đào tạo nghề",
+		"training_desc": "Các khóa học nghề chuyên nghiệp",
+		"jobs": "Tạo việc làm",
+		"jobs_desc": "Kết nối và tạo cơ hội việc làm",
+		"support": "Hỗ trợ hòa nhập",
+		"support_desc": "Đồng hành cùng phát triển"
+	}
 }
