@@ -82,7 +82,10 @@ https://svelte.dev/e/js_parse_error -->
 
   <!-- Main Content -->
   <main id="main-content" class="flex-1" role="main">
-    {@html children()}
+    <!-- Fixed Svelte 5 children rendering syntax -->
+    {#each children as child}
+      {child}
+    {/each}
   </main>
 
   <!-- Footer -->
